@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ShellyData {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  
+  // Phase A : Maison
+  voltage_a Float
+  current_a Float
+  power_a   Float
+  
+  // Phase B : Solaire
+  voltage_b Float
+  current_b Float
+  power_b   Float
+  
+  // Phase C : Chauffe-eau
+  voltage_c Float
+  current_c Float
+  power_c   Float
+}
+
+model SystemSettings {
+  id            String  @id @default("global")
+  shellyIp      String  @default("192.168.1.68")
+}
