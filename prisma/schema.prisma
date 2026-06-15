@@ -29,5 +29,5 @@ model ShellyData {
 
 model SystemSettings {
   id            String  @id @default("global")
-  shellyIp      String  @default("192.168.1.68")
+  shellyIp      String  @default("192.168.1.50")
 }

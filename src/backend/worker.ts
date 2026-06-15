@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 /* ------------------- Shelly Polling ------------------- */
 const fetchShellyData = async () => {
   try {
-    const shellyIp = process.env.SHELLY_IP || process.env.PRINTER_IP || '192.168.1.68';
+    const shellyIp = process.env.SHELLY_IP;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -18,7 +18,7 @@ const fetchShellyData = async () => {
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
-    
+
     const phaseA = data['em1:0'];
     const phaseB = data['em1:1'];
     const phaseC = data['em1:2'];

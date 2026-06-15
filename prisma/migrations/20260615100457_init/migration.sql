@@ -16,5 +16,5 @@ CREATE TABLE "ShellyData" (
 -- CreateTable
 CREATE TABLE "SystemSettings" (
     "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'global',
-    "shellyIp" TEXT NOT NULL DEFAULT '192.168.1.68'
+    "shellyIp" TEXT NOT NULL DEFAULT '192.168.1.50'
 );

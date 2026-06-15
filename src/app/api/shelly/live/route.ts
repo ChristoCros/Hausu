@@ -5,10 +5,10 @@ export const revalidate = 0; // Disable cache
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ip = searchParams.get('shellyIp') || process.env.SHELLY_IP || process.env.PRINTER_IP || '192.168.1.68';
+    const ip = searchParams.get('shellyIp') || process.env.SHELLY_IP;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(`http://${ip}/rpc/Shelly.GetStatus`, { 
+    const res = await fetch(`http://${ip}/rpc/Shelly.GetStatus`, {
       cache: 'no-store',
       signal: controller.signal
     }).catch(() => null);
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       });
     }
     const data = await res.json();
-    
+
     return NextResponse.json({
       voltage_a: data['em1:0']?.voltage || 0,
       current_a: data['em1:0']?.current || 0,

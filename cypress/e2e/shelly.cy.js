@@ -83,10 +83,10 @@ describe('Hausu Smart Dashboard', () => {
       cy.get('#settings-btn').click();
       cy.contains('PARAMETRES SYSTEME').should('be.visible');
       cy.contains('Connectivite Shelly').should('be.visible');
-      cy.get('#shelly-ip-input').clear().type('192.168.1.68');
+      cy.get('#shelly-ip-input').clear().type('192.168.1.50');
       cy.get('#save-settings-btn').click();
       cy.contains('PARAMETRES SYSTEME').should('not.exist');
-      cy.window().its('localStorage.shellyIp').should('eq', '192.168.1.68');
+      cy.window().its('localStorage.shellyIp').should('eq', '192.168.1.50');
 
       cy.get('#settings-btn').click();
       cy.get('#close-settings-btn').click();

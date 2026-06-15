@@ -122,11 +122,12 @@ const FlowNode = ({ title, power, icon: Icon, color, style, titleAttr }: FlowNod
 
   return (
     <div 
+      className="flow-node"
       style={{
         position: 'absolute',
         ...style,
         transform: 'translate(-50%, -50%)',
-        backgroundColor: 'rgba(16, 18, 35, 0.8)',
+        backgroundColor: '#101223',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         border: `1px solid ${nodeBorderColor}`,
@@ -162,12 +163,115 @@ const FlowNode = ({ title, power, icon: Icon, color, style, titleAttr }: FlowNod
   );
 };
 
+const LoadingScreen = ({ theme, shellyIp }: { theme: 'classic' | 'nier'; shellyIp: string }) => {
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const steps = useMemo(() => [
+    "DÉMARRAGE DU LOGICIEL HAUSU...",
+    "CONNEXION AU MODULE SHELLY EN COURS...",
+    "CHARGEMENT DE L'HISTORIQUE DE CONSOMMATION...",
+    "RÉCUPÉRATION DES PRÉVISIONS MÉTÉO...",
+    "CALIBRAGE DU DIAGRAMME DE FLUX...",
+    "SYNCHRONISATION DES APPAREILS CONSEILLÉS...",
+    "PRÉPARATION DU TABLEAU DE BORD..."
+  ], []);
+
+  useEffect(() => {
+    const stepInterval = setInterval(() => {
+      setLoadingStep(prev => (prev + 1) % steps.length);
+    }, 1500);
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) return 0;
+        const remaining = 100 - prev;
+        const step = Math.max(1, Math.min(remaining, Math.floor(Math.random() * 10) + 2));
+        return prev + step;
+      });
+    }, 200);
+
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(progressInterval);
+    };
+  }, [steps]);
+
+  if (theme === 'nier') {
+    return (
+      <div className="flex-center nier-loading-container" style={{ height: '100%', minHeight: '400px', flexDirection: 'column', gap: '35px', width: '100%' }}>
+        <div className="nier-loader-box">
+          <div className="nier-corner tl"></div>
+          <div className="nier-corner tr"></div>
+          <div className="nier-corner bl"></div>
+          <div className="nier-corner br"></div>
+          
+          <span className="nier-meta-label tl">SYS_INIT_V2.06</span>
+          <span className="nier-meta-label tr">PORT_3000</span>
+          <span className="nier-meta-label bl">CONN_SECURE</span>
+          <span className="nier-meta-label br">HAUSU_SYS</span>
+
+          <div className="nier-loader-center">
+            <div className="nier-diamond-spin"></div>
+            <div className="nier-diamond-inner"></div>
+            <div className="nier-grid-dots">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="nier-dot" />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="nier-progress-wrapper" style={{ width: '320px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="nier-progress-bar-container">
+            <div className="nier-progress-bar-fill" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+            <div className="nier-bar-split" />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
+            <span className="nier-status-text">[ {steps[loadingStep]} ]</span>
+            <span className="nier-percentage-text">{Math.min(progress, 100)}%</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-center classic-loading-container" style={{ height: '100%', minHeight: '400px', flexDirection: 'column', gap: '30px', width: '100%' }}>
+      <div className="classic-loader-wrapper">
+        <svg viewBox="0 0 120 120" className="classic-loader-svg">
+          <circle cx="60" cy="60" r="54" className="orbit-outer" />
+          <circle cx="60" cy="60" r="44" className="orbit-middle" />
+          <circle cx="60" cy="60" r="34" className="orbit-inner" />
+          
+          <circle cx="60" cy="60" r="54" className="ring-outer" />
+          <circle cx="60" cy="60" r="44" className="ring-middle" />
+          <circle cx="60" cy="60" r="34" className="ring-inner" />
+        </svg>
+        <div className="classic-loader-core">
+          <Zap size={28} className="core-icon text-orange" />
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        <div className="classic-loader-title">INITIALISATION SYSTÈME ÉNERGIE...</div>
+        <div className="classic-loader-step">{steps[loadingStep]}</div>
+        <div className="classic-progress-bar-container">
+          <div className="classic-progress-bar-fill" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 type ShellyDashboardProps = {
   shellyIp: string;
   data: ShellyLiveData | null;
+  theme: 'classic' | 'nier';
 };
 
-export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps) {
+export default function ShellyDashboard({ shellyIp, data, theme }: ShellyDashboardProps) {
   const [history, setHistory] = useState<ShellyHistoryItem[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [viewedHour, setViewedHour] = useState<Date>(new Date());
@@ -314,12 +418,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
     });
   }, [surplus, solarVal]);
 
-  if (!data) return (
-    <div className="flex-center" style={{ height: '100%', flexDirection: 'column', gap: '20px' }}>
-      <Activity size={48} strokeWidth={1.5} className="text-orange glow-active" />
-      <div style={{ color: 'var(--text-secondary)', fontSize: '18px', letterSpacing: '2px' }}>INITIALISATION SYSTÈME ÉNERGIE...</div>
-    </div>
-  );
+  if (!data) return <LoadingScreen theme={theme} shellyIp={shellyIp} />;
 
   // Count non-null history entries to display dots if there is only one data point
   const maisonCount = history.filter(item => item.Maison !== null).length;
@@ -498,18 +597,20 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
       <Panel className="history-panel" style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h2 className="title-font" style={{ fontSize: '20px', letterSpacing: '2px', margin: 0 }}>HISTORIQUE</h2>
+            <h2 className="title-font" style={{ fontSize: '20px', letterSpacing: '2px', margin: 0 }}>
+              {theme === 'nier' ? '[ HISTORIQUE ]' : 'HISTORIQUE'}
+            </h2>
             <div style={{ display: 'flex', gap: '15px', fontSize: '11px', marginTop: '5px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: '#00b0ff', borderRadius: '2px' }} />
+                <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: 'var(--accent-blue)', borderRadius: theme === 'nier' ? '0' : '2px' }} />
                 <span style={{ color: 'var(--text-secondary)' }}>Maison</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: '#ffd54f', borderRadius: '2px' }} />
+                <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: 'var(--accent-solar)', borderRadius: theme === 'nier' ? '0' : '2px' }} />
                 <span style={{ color: 'var(--text-secondary)' }}>Solaire</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: '#4db6ac', borderRadius: '2px' }} />
+                <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: 'var(--accent-teal)', borderRadius: theme === 'nier' ? '0' : '2px' }} />
                 <span style={{ color: 'var(--text-secondary)' }}>Chauffe-eau</span>
               </div>
             </div>
@@ -537,27 +638,32 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
               <AreaChart data={history}>
                 <defs>
                   <linearGradient id="colorMaison" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00b0ff" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#00b0ff" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={theme === 'nier' ? 0.05 : 0.25}/>
+                    <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorSolaire" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ffd54f" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#ffd54f" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-solar)" stopOpacity={theme === 'nier' ? 0.05 : 0.25}/>
+                    <stop offset="95%" stopColor="var(--accent-solar)" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorChauffeEau" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4db6ac" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#4db6ac" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-teal)" stopOpacity={theme === 'nier' ? 0.05 : 0.25}/>
+                    <stop offset="95%" stopColor="var(--accent-teal)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                  contentStyle={{ 
+                    backgroundColor: theme === 'nier' ? '#C5C2BB' : 'var(--bg-color)', 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: theme === 'nier' ? '0px' : '8px', 
+                    color: 'var(--text-primary)' 
+                  }}
                 />
-                <Area type="monotone" dataKey="Maison" stroke="#00b0ff" strokeWidth={3} fillOpacity={1} fill="url(#colorMaison)" dot={maisonCount === 1 ? { r: 4, fill: '#00b0ff', strokeWidth: 0 } : false} activeDot={{ r: 8, fill: '#00b0ff' }} connectNulls={false} />
-                <Area type="monotone" dataKey="Solaire" stroke="#ffd54f" strokeWidth={2} fillOpacity={1} fill="url(#colorSolaire)" dot={solaireCount === 1 ? { r: 4, fill: '#ffd54f', strokeWidth: 0 } : false} connectNulls={false} />
-                <Area type="monotone" dataKey="ChauffeEau" stroke="#4db6ac" strokeWidth={2} fillOpacity={1} fill="url(#colorChauffeEau)" dot={chauffeCount === 1 ? { r: 4, fill: '#4db6ac', strokeWidth: 0 } : false} connectNulls={false} />
+                <Area type="monotone" dataKey="Maison" stroke="var(--accent-blue)" strokeWidth={3} fillOpacity={1} fill="url(#colorMaison)" dot={maisonCount === 1 ? { r: 4, fill: 'var(--accent-blue)', strokeWidth: 0 } : false} activeDot={{ r: 8, fill: 'var(--accent-blue)' }} connectNulls={false} />
+                <Area type="monotone" dataKey="Solaire" stroke="var(--accent-solar)" strokeWidth={2} fillOpacity={1} fill="url(#colorSolaire)" dot={solaireCount === 1 ? { r: 4, fill: 'var(--accent-solar)', strokeWidth: 0 } : false} connectNulls={false} />
+                <Area type="monotone" dataKey="ChauffeEau" stroke="var(--accent-teal)" strokeWidth={2} fillOpacity={1} fill="url(#colorChauffeEau)" dot={chauffeCount === 1 ? { r: 4, fill: 'var(--accent-teal)', strokeWidth: 0 } : false} connectNulls={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -566,11 +672,10 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
 
       {/* Bottom Layout: Details & Weather */}
       <div className="details-weather-container">
-        
         {/* Far Left: Appliances suggestion Panel */}
         <Panel className="appliances-panel">
           <div style={{ color: 'var(--text-secondary)', fontSize: '14px', letterSpacing: '1px', marginBottom: '8px' }}>
-            APPAREILS CONSEILLÉS
+            {theme === 'nier' ? 'EQUIPMENT // RECOMMENDATION' : 'APPAREILS CONSEILLÉS'}
           </div>
 
           {/* Quick horizontal view of launchable appliances (fully covered by surplus) */}
@@ -583,9 +688,13 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                     key={app.id} 
                     data-tooltip={`${app.name} (${app.power} W)`}
                     className={`appliance-icon-badge tooltip-trigger ${index === 0 ? 'tooltip-left' : ''}`}
-                    style={{ borderColor: 'rgba(129, 199, 132, 0.5)', cursor: 'help', background: 'rgba(129, 199, 132, 0.05)' }}
+                    style={{ 
+                      borderColor: theme === 'nier' ? 'var(--border-color)' : 'rgba(129, 199, 132, 0.5)', 
+                      cursor: 'help', 
+                      background: theme === 'nier' ? 'var(--panel-bg)' : 'rgba(129, 199, 132, 0.05)' 
+                    }}
                   >
-                    <Icon size={16} color="#81c784" strokeWidth={1.5} style={{ pointerEvents: 'none' }} />
+                    <Icon size={16} color={theme === 'nier' ? 'var(--accent-green)' : '#81c784'} strokeWidth={1.5} style={{ pointerEvents: 'none' }} />
                   </div>
                 );
               })
@@ -606,12 +715,12 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
               
               if (isFree) {
                 statusClass = 'appliance-status-free';
-                iconColor = '#81c784';
-                iconBorderColor = 'rgba(129, 199, 132, 0.4)';
+                iconColor = theme === 'nier' ? 'var(--accent-green)' : '#81c784';
+                iconBorderColor = theme === 'nier' ? 'var(--border-color)' : 'rgba(129, 199, 132, 0.4)';
               } else if (isPartial) {
                 statusClass = 'appliance-status-partial';
-                iconColor = '#ffd54f';
-                iconBorderColor = 'rgba(255, 213, 79, 0.4)';
+                iconColor = theme === 'nier' ? 'var(--accent-solar)' : '#ffd54f';
+                iconBorderColor = theme === 'nier' ? 'var(--border-color)' : 'rgba(255, 213, 79, 0.4)';
               }
 
               return (
@@ -629,7 +738,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                     </div>
                   </div>
                   <div className={`appliance-status ${statusClass}`}>
-                    {app.statusLabel}
+                    {theme === 'nier' ? `[ ${app.statusLabel.toUpperCase()} ]` : app.statusLabel}
                   </div>
                 </div>
               );
@@ -641,7 +750,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
         <div className="details-wrapper">
           <Panel className="details-panel">
             <MetricDetail
-              title="DETAILS - MAISON"
+              title={theme === 'nier' ? '01 / DETAILS - MAISON' : 'DETAILS - MAISON'}
               voltage={data.voltage_a}
               current={data.current_a}
             />
@@ -649,7 +758,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
             <div className="divider"></div>
 
             <MetricDetail
-              title="DETAILS - SOLAIRE"
+              title={theme === 'nier' ? '02 / DETAILS - SOLAIRE' : 'DETAILS - SOLAIRE'}
               voltage={data.voltage_b}
               current={data.current_b}
             />
@@ -657,7 +766,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
             <div className="divider"></div>
 
             <MetricDetail
-              title="DETAILS - CHAUFFE-EAU"
+              title={theme === 'nier' ? '03 / DETAILS - CHAUFFE-EAU' : 'DETAILS - CHAUFFE-EAU'}
               voltage={data.voltage_c}
               current={data.current_c}
             />
@@ -668,7 +777,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <div className="metric-detail-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
                 <Sun size={16} strokeWidth={1.5} color="var(--accent-solar)" className="spin-slow" />
-                <span>SOLEIL & ÉPHÉMÉRIDE</span>
+                <span>{theme === 'nier' ? 'SOLEIL // EPHEMERIDE' : 'SOLEIL & ÉPHÉMÉRIDE'}</span>
               </div>
               
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexGrow: 1 }}>
@@ -689,16 +798,16 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                         cx={sunPosition.x} 
                         cy={sunPosition.y} 
                         r="5" 
-                        fill="#ffd54f" 
-                        style={{ filter: 'drop-shadow(0 0 6px #ffd54f)' }} 
+                        fill={theme === 'nier' ? 'var(--accent-solar)' : '#ffd54f'} 
+                        style={theme === 'nier' ? {} : { filter: 'drop-shadow(0 0 6px #ffd54f)' }} 
                       />
                     ) : (
                       <circle 
                         cx={sunPosition.x} 
                         cy={sunPosition.y} 
                         r="4.5" 
-                        fill="#9fa8da" 
-                        style={{ filter: 'drop-shadow(0 0 6px #9fa8da)' }} 
+                        fill={theme === 'nier' ? 'var(--accent-blue)' : '#9fa8da'} 
+                        style={theme === 'nier' ? {} : { filter: 'drop-shadow(0 0 6px #9fa8da)' }} 
                       />
                     )}
                   </svg>
@@ -707,8 +816,8 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                 {/* Sunrise/Sunset Texts */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div className="appliance-icon-badge" style={{ borderColor: 'rgba(255, 213, 79, 0.3)', padding: '6px', background: 'var(--panel-bg)' }}>
-                      <Sunrise size={16} strokeWidth={1.5} color="#ffd54f" />
+                    <div className="appliance-icon-badge" style={{ borderColor: 'var(--border-color)', padding: '6px', background: 'var(--panel-bg)' }}>
+                      <Sunrise size={16} strokeWidth={1.5} color="var(--accent-solar)" />
                     </div>
                     <div>
                       <div className="metric-detail-label">Lever</div>
@@ -717,8 +826,8 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div className="appliance-icon-badge" style={{ borderColor: 'rgba(255, 112, 67, 0.3)', padding: '6px', background: 'var(--panel-bg)' }}>
-                      <Sunset size={16} strokeWidth={1.5} color="#ff7043" />
+                    <div className="appliance-icon-badge" style={{ borderColor: 'var(--border-color)', padding: '6px', background: 'var(--panel-bg)' }}>
+                      <Sunset size={16} strokeWidth={1.5} color="var(--accent-orange)" />
                     </div>
                     <div>
                       <div className="metric-detail-label">Coucher</div>
@@ -734,25 +843,25 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
             {/* Right: Eclipse */}
             <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column' }}>
               <div className="metric-detail-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
-                <Eclipse size={16} strokeWidth={1.5} color="#b39ddb" />
-                <span>PROCHAINE ÉCLIPSE (FRANCE)</span>
+                <Eclipse size={16} strokeWidth={1.5} color={theme === 'nier' ? 'var(--accent-blue)' : '#b39ddb'} />
+                <span>{theme === 'nier' ? 'SYSTEM // PROCHAINE ECLIPSE' : 'PROCHAINE ÉCLIPSE (FRANCE)'}</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', justifyContent: 'center', flexGrow: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>12 Août 2026</div>
-                    <div style={{ fontSize: '10px', color: '#b39ddb', fontWeight: 500 }}>Solaire Totale (Partielle en FR)</div>
+                    <div style={{ fontSize: '10px', color: theme === 'nier' ? 'var(--text-secondary)' : '#b39ddb', fontWeight: 500 }}>Solaire Totale (Partielle en FR)</div>
                   </div>
                   
                   <div style={{ 
-                    background: 'rgba(179, 157, 219, 0.1)', 
-                    border: '1px solid rgba(179, 157, 219, 0.3)', 
-                    color: '#b39ddb', 
+                    background: theme === 'nier' ? 'var(--panel-bg-alt)' : 'rgba(179, 157, 219, 0.1)', 
+                    border: `1px solid ${theme === 'nier' ? 'var(--border-color)' : 'rgba(179, 157, 219, 0.3)'}`, 
+                    color: theme === 'nier' ? 'var(--text-primary)' : '#b39ddb', 
                     fontSize: '10px', 
                     fontWeight: 700, 
                     padding: '3px 8px', 
-                    borderRadius: '6px',
+                    borderRadius: theme === 'nier' ? '0px' : '6px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>
@@ -760,14 +869,14 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyItems: 'space-between', gap: '10px 15px', background: 'var(--bg-color)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyItems: 'space-between', gap: '10px 15px', background: 'var(--bg-color)', padding: '8px 12px', borderRadius: theme === 'nier' ? '0px' : '8px', border: '1px solid var(--border-color)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <span className="metric-detail-label" style={{ fontSize: '9px' }}>Début</span>
                     <span className="metric-detail-value" style={{ fontSize: '11px' }}>19:23</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1.5 }}>
                     <span className="metric-detail-label" style={{ fontSize: '9px' }}>Maximum</span>
-                    <span className="metric-detail-value" style={{ fontSize: '11px', color: '#ffd54f' }}>20:20 <span style={{ fontSize: '9px', fontWeight: 400, color: 'var(--text-secondary)' }}>(~93%)</span></span>
+                    <span className="metric-detail-value" style={{ fontSize: '11px', color: 'var(--accent-solar)' }}>20:20 <span style={{ fontSize: '9px', fontWeight: 400, color: 'var(--text-secondary)' }}>(~93%)</span></span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <span className="metric-detail-label" style={{ fontSize: '9px' }}>Fin</span>
@@ -775,7 +884,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9.5px', color: '#ffb74d', background: 'rgba(255, 183, 77, 0.05)', padding: '5px 8px', borderRadius: '6px', border: '1px solid rgba(255, 183, 77, 0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9.5px', color: theme === 'nier' ? 'var(--text-primary)' : '#ffb74d', background: theme === 'nier' ? 'var(--panel-bg-alt)' : 'rgba(255, 183, 77, 0.05)', padding: '5px 8px', borderRadius: theme === 'nier' ? '0px' : '6px', border: `1px solid ${theme === 'nier' ? 'var(--border-color)' : 'rgba(255, 183, 77, 0.2)'}` }}>
                   <Info size={12} style={{ flexShrink: 0 }} />
                   <span>Observation : lunettes spéciales certifiées obligatoires !</span>
                 </div>
@@ -787,7 +896,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
         {/* Right: 3-Day Weather (1/3 width) */}
         <Panel className="weather-panel">
           <div style={{ color: 'var(--text-secondary)', fontSize: '14px', letterSpacing: '1px', marginBottom: '15px' }}>
-            MÉTÉO - {(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}
+            {theme === 'nier' ? `METEO // ${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}` : `MÉTÉO - ${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}`}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, justifyContent: 'center' }}>
             {weather ? (
@@ -802,7 +911,7 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
                 const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
                 
                 return (
-                  <div key={day} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <div key={day} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg-color)', borderRadius: theme === 'nier' ? '0px' : '8px', border: '1px solid var(--border-color)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', background: 'var(--panel-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Icon size={18} strokeWidth={1.5} color="var(--accent-orange)" />
@@ -824,7 +933,6 @@ export default function ShellyDashboard({ shellyIp, data }: ShellyDashboardProps
             )}
           </div>
         </Panel>
-
       </div>
 
     </div>

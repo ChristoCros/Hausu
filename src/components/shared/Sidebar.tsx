@@ -1,15 +1,16 @@
-import { LayoutDashboard, Thermometer, Settings, Zap } from 'lucide-react';
+import { LayoutDashboard, Thermometer, Settings, Zap, ClipboardList } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'climate';
-  setActiveTab: (tab: 'dashboard' | 'climate') => void;
+  activeTab: 'dashboard' | 'climate' | 'todo';
+  setActiveTab: (tab: 'dashboard' | 'climate' | 'todo') => void;
   onOpenSettings: () => void;
   data: {
     power_b: number;
   } | null;
+  theme: 'classic' | 'nier';
 }
 
-export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data, theme }: SidebarProps) {
   // Compute solar production status
   const solarVal = data ? Math.round(Math.abs(data.power_b)) : 0;
   const hasSolar = data ? (data.power_b < 0 || solarVal > 0) : false;
@@ -18,28 +19,48 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data 
     <aside className="panel sidebar-panel">
       <div className="sidebar-logo">
         <Zap color="var(--accent-orange)" size={22} strokeWidth={2} />
-        <h1>HAUSU</h1>
+        <h1>{theme === 'nier' ? 'HAUSU // SYSTEM' : 'HAUSU'}</h1>
       </div>
 
       {/* Dynamic Solar status block styled like the Dribbble mockup */}
       <div className="active-monitoring-section">
-        <div className="active-monitoring-title">ACTIVE MONITORING</div>
+        <div className="active-monitoring-title">
+          {theme === 'nier' ? 'ACTIVE MONITORING' : 'ACTIVE MONITORING'}
+        </div>
         {data ? (
           hasSolar ? (
             <div className="solar-status-badge active" title="Production solaire en cours">
-              <span className="solar-pulse-dot" />
-              <span className="solar-status-text">SOLAR ACTIVE</span>
+              {theme === 'nier' ? (
+                <span className="solar-status-text">[ SOLAR // ACTIVE ]</span>
+              ) : (
+                <>
+                  <span className="solar-pulse-dot" />
+                  <span className="solar-status-text">SOLAR ACTIVE</span>
+                </>
+              )}
             </div>
           ) : (
             <div className="solar-status-badge inactive" title="Solaire en veille">
-              <span className="solar-idle-dot" />
-              <span className="solar-status-text">SOLAR IDLE</span>
+              {theme === 'nier' ? (
+                <span className="solar-status-text">[ SOLAR // IDLE ]</span>
+              ) : (
+                <>
+                  <span className="solar-idle-dot" />
+                  <span className="solar-status-text">SOLAR IDLE</span>
+                </>
+              )}
             </div>
           )
         ) : (
           <div className="solar-status-badge loading" title="Connexion Shelly en cours">
-            <span className="solar-loading-dot" />
-            <span className="solar-status-text">CONNECTING...</span>
+            {theme === 'nier' ? (
+              <span className="solar-status-text">[ CONNECTING... ]</span>
+            ) : (
+              <>
+                <span className="solar-loading-dot" />
+                <span className="solar-status-text">CONNECTING...</span>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -50,7 +71,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data 
           className={`sidebar-link ${activeTab === 'dashboard' ? 'active' : ''}`}
         >
           <LayoutDashboard size={18} strokeWidth={1.5} />
-          <span className="sidebar-link-text">DASHBOARD ÉNERGIE</span>
+          <span className="sidebar-link-text">
+            {theme === 'nier' ? '[ 01 / DASHBOARD ]' : 'DASHBOARD ÉNERGIE'}
+          </span>
         </div>
 
         <div
@@ -58,7 +81,19 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data 
           className={`sidebar-link ${activeTab === 'climate' ? 'active' : ''}`}
         >
           <Thermometer size={18} strokeWidth={1.5} />
-          <span className="sidebar-link-text">CLIMAT</span>
+          <span className="sidebar-link-text">
+            {theme === 'nier' ? '[ 02 / CLIMAT ]' : 'CLIMAT'}
+          </span>
+        </div>
+
+        <div
+          onClick={() => setActiveTab('todo')}
+          className={`sidebar-link ${activeTab === 'todo' ? 'active' : ''}`}
+        >
+          <ClipboardList size={18} strokeWidth={1.5} />
+          <span className="sidebar-link-text">
+            {theme === 'nier' ? '[ 03 / TÂCHES ]' : 'PLANIFICATEUR'}
+          </span>
         </div>
       </nav>
 
@@ -70,7 +105,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data 
           title="Paramètres système"
         >
           <Settings size={18} strokeWidth={1.5} />
-          <span className="sidebar-link-text">Settings</span>
+          <span className="sidebar-link-text">
+            {theme === 'nier' ? 'SETTINGS' : 'Settings'}
+          </span>
         </button>
       </div>
     </aside>
