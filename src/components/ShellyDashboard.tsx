@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Zap, Activity, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Sunrise, Sunset, Eclipse, Info } from 'lucide-react';
+import { Zap, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Sunrise, Sunset, Eclipse, Info } from 'lucide-react';
 import SunCalc from 'suncalc';
 import Panel from './ui/Panel';
 import IconButton from './ui/IconButton';
-import Badge from './ui/Badge';
 import MetricDetail from './shared/MetricDetail';
 
 interface ShellyLiveData {
@@ -163,7 +162,7 @@ const FlowNode = ({ title, power, icon: Icon, color, style, titleAttr }: FlowNod
   );
 };
 
-const LoadingScreen = ({ theme, shellyIp }: { theme: 'classic' | 'nier'; shellyIp: string }) => {
+const LoadingScreen = ({ theme }: { theme: 'classic' | 'nier' }) => {
   const [loadingStep, setLoadingStep] = useState(0);
   const [progress, setProgress] = useState(0);
 
@@ -266,12 +265,11 @@ const LoadingScreen = ({ theme, shellyIp }: { theme: 'classic' | 'nier'; shellyI
 
 
 type ShellyDashboardProps = {
-  shellyIp: string;
   data: ShellyLiveData | null;
   theme: 'classic' | 'nier';
 };
 
-export default function ShellyDashboard({ shellyIp, data, theme }: ShellyDashboardProps) {
+export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
   const [history, setHistory] = useState<ShellyHistoryItem[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [viewedHour, setViewedHour] = useState<Date>(new Date());
@@ -380,7 +378,7 @@ export default function ShellyDashboard({ shellyIp, data, theme }: ShellyDashboa
     return () => {
       if (historyInterval) clearInterval(historyInterval);
     };
-  }, [viewedHour, shellyIp, isCurrentHour]);
+  }, [viewedHour, isCurrentHour]);
 
   // Power Flow calculations
   const solarVal = data ? Math.round(Math.abs(data.power_b)) : 0;
@@ -418,7 +416,7 @@ export default function ShellyDashboard({ shellyIp, data, theme }: ShellyDashboa
     });
   }, [surplus, solarVal]);
 
-  if (!data) return <LoadingScreen theme={theme} shellyIp={shellyIp} />;
+  if (!data) return <LoadingScreen theme={theme} />;
 
   // Count non-null history entries to display dots if there is only one data point
   const maisonCount = history.filter(item => item.Maison !== null).length;
@@ -432,10 +430,6 @@ export default function ShellyDashboard({ shellyIp, data, theme }: ShellyDashboa
       <Panel style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <h2 className="title-font" style={{ fontSize: '24px', letterSpacing: '2px', margin: 0 }}>POWER FLOW</h2>
-          
-          <Badge active={hasSolar} title={hasSolar ? "Production solaire active" : "Pas de production solaire"}>
-            <Sun size={18} strokeWidth={1.5} color={hasSolar ? "#ffd54f" : "var(--text-secondary)"} />
-          </Badge>
         </div>
 
         {/* Energy Flow Visualization Container */}

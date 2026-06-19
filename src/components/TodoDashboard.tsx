@@ -31,6 +31,7 @@ export default function TodoDashboard({ theme }: TodoDashboardProps) {
     const saved = window.localStorage.getItem('hausu_todos');
     if (saved) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setColumns(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse todos from localStorage", e);

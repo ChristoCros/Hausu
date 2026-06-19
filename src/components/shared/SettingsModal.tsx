@@ -1,8 +1,6 @@
 import Panel from '../ui/Panel';
 
 interface SettingsModalProps {
-  shellyIp: string;
-  setShellyIp: (ip: string) => void;
   theme: 'classic' | 'nier';
   setTheme: (t: 'classic' | 'nier') => void;
   onSave: () => void;
@@ -10,8 +8,6 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({
-  shellyIp,
-  setShellyIp,
   theme,
   setTheme,
   onSave,
@@ -26,22 +22,7 @@ export default function SettingsModal({
 
         <div className="modal-section">
           <div className="modal-section-title">
-            {theme === 'nier' ? '01 / CONNECTIVITE SHELLY' : 'Connectivite Shelly'}
-          </div>
-          <label htmlFor="shelly-ip-input" className="modal-label">IP Locale Shelly 3EM Pro</label>
-          <input
-            id="shelly-ip-input"
-            type="text"
-            value={shellyIp}
-            onChange={(e) => setShellyIp(e.target.value)}
-            className="modal-text-input"
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        <div className="modal-section" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-          <div className="modal-section-title">
-            {theme === 'nier' ? '02 / DESIGN VISUEL' : 'Design Visuel / Thème'}
+            {theme === 'nier' ? '01 / DESIGN VISUEL' : 'Design Visuel / Thème'}
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button

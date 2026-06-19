@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server';
 
 export const revalidate = 0; // Disable cache
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const ip = searchParams.get('shellyIp') || process.env.SHELLY_IP;
+    const ip = process.env.NEXT_PUBLIC_SHELLY_IP;
+
+    // Security: Validate IP format to prevent SSRF
+    const ipv4Regex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/;
+    if (ip && !ipv4Regex.test(ip)) {
+      return NextResponse.json({ error: "Invalid IP address format" }, { status: 400 });
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     const res = await fetch(`http://${ip}/rpc/Shelly.GetStatus`, {

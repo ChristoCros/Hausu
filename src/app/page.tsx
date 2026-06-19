@@ -24,20 +24,17 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'climate' | 'todo'>('dashboard');
   const [showSettings, setShowSettings] = useState(false);
   const [data, setData] = useState<ShellyLiveData | null>(null);
-  const [shellyIp, setShellyIp] = useState(process.env.NEXT_PUBLIC_SHELLY_IP || '192.168.1.68');
   const [theme, setTheme] = useState<'classic' | 'nier'>('classic');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedIp = window.localStorage.getItem('shellyIp');
-    if (savedIp) setShellyIp(savedIp);
     const savedTheme = window.localStorage.getItem('theme') as 'classic' | 'nier';
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedTheme) setTheme(savedTheme);
     setMounted(true);
   }, []);
 
   const saveSettings = () => {
-    window.localStorage.setItem('shellyIp', shellyIp);
     window.localStorage.setItem('theme', theme);
     setShowSettings(false);
   };
@@ -46,7 +43,7 @@ export default function Home() {
     if (!mounted) return;
     const fetchLive = async () => {
       try {
-        const res = await fetch(`/api/shelly/live?shellyIp=${encodeURIComponent(shellyIp)}`);
+        const res = await fetch('/api/shelly/live');
         const json = await res.json();
         if (!json.error) setData(json);
       } catch (err) {
@@ -57,14 +54,12 @@ export default function Home() {
     fetchLive();
     const interval = setInterval(fetchLive, 2000);
     return () => clearInterval(interval);
-  }, [shellyIp, mounted]);
+  }, [mounted]);
 
   return (
     <div className={`main-layout ${theme === 'nier' ? 'theme-nier' : ''}`}>
       {showSettings && (
         <SettingsModal
-          shellyIp={shellyIp}
-          setShellyIp={setShellyIp}
           theme={theme}
           setTheme={setTheme}
           onSave={saveSettings}
@@ -82,7 +77,7 @@ export default function Home() {
 
       <div className="content-area">
         {activeTab === 'dashboard' ? (
-          <ShellyDashboard shellyIp={shellyIp} data={data} theme={theme} />
+          <ShellyDashboard data={data} theme={theme} />
         ) : activeTab === 'climate' ? (
           <ClimateTornado />
         ) : (

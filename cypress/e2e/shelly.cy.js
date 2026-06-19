@@ -79,68 +79,19 @@ describe('Hausu Smart Dashboard', () => {
       cy.contains('MÉTÉO').should('be.visible');
     });
 
-    it('enregistre l IP Shelly dans le navigateur sans /api/settings', () => {
+    it('permet de changer le theme de classic a nier dans les parametres', () => {
       cy.get('#settings-btn').click();
       cy.contains('PARAMETRES SYSTEME').should('be.visible');
-      cy.contains('Connectivite Shelly').should('be.visible');
-      cy.get('#shelly-ip-input').clear().type('192.168.1.50');
+      cy.contains('Design Visuel / Thème').should('be.visible');
+      
+      // Click theme NieR
+      cy.get('#theme-nier-btn').click();
       cy.get('#save-settings-btn').click();
       cy.contains('PARAMETRES SYSTEME').should('not.exist');
-      cy.window().its('localStorage.shellyIp').should('eq', '192.168.1.50');
+      cy.window().its('localStorage.theme').should('eq', 'nier');
 
-      cy.get('#settings-btn').click();
-      cy.get('#close-settings-btn').click();
-      cy.contains('PARAMETRES SYSTEME').should('not.exist');
-    });
-  });
-
-  describe('Indicateur solaire dynamique', () => {
-    it('affiche un soleil quand le solaire produit de l energie', () => {
-      cy.intercept('GET', '/api/shelly/live*', {
-        statusCode: 200,
-        body: {
-          voltage_a: 230,
-          current_a: 1.5,
-          power_a: 345,
-          voltage_b: 230,
-          current_b: 4.3,
-          power_b: -1000,
-          voltage_c: 230,
-          current_c: 0,
-          power_c: 0,
-        },
-      }).as('getLiveProducing');
-
-      cy.visit('/');
-      cy.wait('@getLiveProducing');
-
-      cy.get('[title="Production solaire active"]').should('exist');
-      cy.get('[title="Production solaire active"]').find('svg.lucide-sun').should('exist');
-      cy.get('[title="Production solaire active"]').find('svg.lucide-moon').should('not.exist');
-    });
-
-    it('affiche un soleil grise quand le solaire ne produit pas d energie', () => {
-      cy.intercept('GET', '/api/shelly/live*', {
-        statusCode: 200,
-        body: {
-          voltage_a: 230,
-          current_a: 1.5,
-          power_a: 345,
-          voltage_b: 230,
-          current_b: 0,
-          power_b: 0,
-          voltage_c: 230,
-          current_c: 0,
-          power_c: 0,
-        },
-      }).as('getLiveNotProducing');
-
-      cy.visit('/');
-      cy.wait('@getLiveNotProducing');
-
-      cy.get('[title="Pas de production solaire"]').should('exist');
-      cy.get('[title="Pas de production solaire"]').find('svg.lucide-sun').should('exist');
-      cy.get('[title="Pas de production solaire"]').find('svg.lucide-moon').should('not.exist');
+      // Check if layout has theme-nier class
+      cy.get('.main-layout').should('have.class', 'theme-nier');
     });
   });
 

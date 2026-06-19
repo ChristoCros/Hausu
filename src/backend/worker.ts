@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 /* ------------------- Shelly Polling ------------------- */
 const fetchShellyData = async () => {
   try {
-    const shellyIp = process.env.SHELLY_IP;
+    const shellyIp = process.env.NEXT_PUBLIC_SHELLY_IP;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
