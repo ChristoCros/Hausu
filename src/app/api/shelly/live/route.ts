@@ -20,18 +20,7 @@ export async function GET() {
     }).catch(() => null);
     clearTimeout(timeoutId);
     if (!res || !res.ok) {
-      // Return dummy data for testing / CI environments when Shelly device is not reachable
-      return NextResponse.json({
-        voltage_a: 0,
-        current_a: 0,
-        power_a: 0,
-        voltage_b: 0,
-        current_b: 0,
-        power_b: 0,
-        voltage_c: 0,
-        current_c: 0,
-        power_c: 0,
-      });
+      return NextResponse.json({ error: "Shelly device is unreachable" }, { status: 503 });
     }
     const data = await res.json();
 

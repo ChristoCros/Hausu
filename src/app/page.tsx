@@ -6,6 +6,7 @@ import ClimateTornado from '../components/ClimateTornado';
 import Sidebar from '../components/shared/Sidebar';
 import SettingsModal from '../components/shared/SettingsModal';
 import TodoDashboard from '../components/TodoDashboard';
+import WeatherForecast from '../components/WeatherForecast';
 
 interface ShellyLiveData {
   voltage_a: number;
@@ -21,7 +22,7 @@ interface ShellyLiveData {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'climate' | 'todo'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'climate' | 'todo' | 'weather'>('dashboard');
   const [showSettings, setShowSettings] = useState(false);
   const [data, setData] = useState<ShellyLiveData | null>(null);
   const [theme, setTheme] = useState<'classic' | 'nier'>('classic');
@@ -80,8 +81,10 @@ export default function Home() {
           <ShellyDashboard data={data} theme={theme} />
         ) : activeTab === 'climate' ? (
           <ClimateTornado />
-        ) : (
+        ) : activeTab === 'todo' ? (
           <TodoDashboard theme={theme} />
+        ) : (
+          <WeatherForecast theme={theme} />
         )}
       </div>
     </div>

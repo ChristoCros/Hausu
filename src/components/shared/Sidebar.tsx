@@ -1,8 +1,8 @@
-import { LayoutDashboard, Thermometer, Settings, Zap, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Thermometer, Settings, Zap, ClipboardList, CloudSun } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'climate' | 'todo';
-  setActiveTab: (tab: 'dashboard' | 'climate' | 'todo') => void;
+  activeTab: 'dashboard' | 'climate' | 'todo' | 'weather';
+  setActiveTab: (tab: 'dashboard' | 'climate' | 'todo' | 'weather') => void;
   onOpenSettings: () => void;
   data: {
     power_b: number;
@@ -12,8 +12,9 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data, theme }: SidebarProps) {
   // Compute solar production status
-  const solarVal = data ? Math.round(Math.abs(data.power_b)) : 0;
-  const hasSolar = data ? (data.power_b < 0 || solarVal > 0) : false;
+  const rawSolar = data ? Math.round(Math.abs(data.power_b)) : 0;
+  const solarVal = rawSolar > 5 ? rawSolar : 0;
+  const hasSolar = solarVal > 0;
 
   return (
     <aside className="panel sidebar-panel">
@@ -93,6 +94,16 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, data,
           <ClipboardList size={18} strokeWidth={1.5} />
           <span className="sidebar-link-text">
             {theme === 'nier' ? '[ 03 / TÂCHES ]' : 'PLANIFICATEUR'}
+          </span>
+        </div>
+
+        <div
+          onClick={() => setActiveTab('weather')}
+          className={`sidebar-link ${activeTab === 'weather' ? 'active' : ''}`}
+        >
+          <CloudSun size={18} strokeWidth={1.5} />
+          <span className="sidebar-link-text">
+            {theme === 'nier' ? '[ 04 / METEO ]' : 'MÉTÉO AGRICOLE'}
           </span>
         </div>
       </nav>

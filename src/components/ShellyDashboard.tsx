@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Zap, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Sunrise, Sunset, Eclipse, Info } from 'lucide-react';
+import { Zap, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Sunrise, Sunset, Eclipse, Info, Thermometer } from 'lucide-react';
 import SunCalc from 'suncalc';
 import Panel from './ui/Panel';
 import IconButton from './ui/IconButton';
@@ -33,6 +33,17 @@ interface WeatherData {
   weathercode: number[];
   temperature_2m_max: number[];
   temperature_2m_min: number[];
+}
+
+interface NetatmoData {
+  temp: number;
+  humidity: number;
+  pressure: number;
+  rain_1h: number;
+  rain_today: number;
+  station_name: string;
+  altitude: number;
+  updated_at: string;
 }
 
 interface FlowNodeProps {
@@ -103,7 +114,7 @@ const getCountdown = (fromDate: Date, toDate: Date) => {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   if (diffDays > 0) {
     return `${diffDays}j ${diffHours}h ${diffMins}m`;
   }
@@ -112,15 +123,15 @@ const getCountdown = (fromDate: Date, toDate: Date) => {
 
 const FlowNode = ({ title, power, icon: Icon, color, style, titleAttr }: FlowNodeProps) => {
   const isGlowing = color && color !== 'var(--text-secondary)';
-  const nodeBoxShadow = isGlowing 
-    ? `0 0 20px ${color}26, 0 8px 32px rgba(0, 0, 0, 0.4)` 
+  const nodeBoxShadow = isGlowing
+    ? `0 0 20px ${color}26, 0 8px 32px rgba(0, 0, 0, 0.4)`
     : '0 8px 32px rgba(0, 0, 0, 0.3)';
   const nodeBorderColor = isGlowing ? `${color}80` : 'var(--border-color)';
   const badgeBorderColor = isGlowing ? color : 'var(--border-color)';
   const badgeBoxShadow = isGlowing ? `0 0 12px ${color}4d` : 'none';
 
   return (
-    <div 
+    <div
       className="flow-node"
       style={{
         position: 'absolute',
@@ -204,7 +215,7 @@ const LoadingScreen = ({ theme }: { theme: 'classic' | 'nier' }) => {
           <div className="nier-corner tr"></div>
           <div className="nier-corner bl"></div>
           <div className="nier-corner br"></div>
-          
+
           <span className="nier-meta-label tl">SYS_INIT_V2.06</span>
           <span className="nier-meta-label tr">PORT_3000</span>
           <span className="nier-meta-label bl">CONN_SECURE</span>
@@ -242,7 +253,7 @@ const LoadingScreen = ({ theme }: { theme: 'classic' | 'nier' }) => {
           <circle cx="60" cy="60" r="54" className="orbit-outer" />
           <circle cx="60" cy="60" r="44" className="orbit-middle" />
           <circle cx="60" cy="60" r="34" className="orbit-inner" />
-          
+
           <circle cx="60" cy="60" r="54" className="ring-outer" />
           <circle cx="60" cy="60" r="44" className="ring-middle" />
           <circle cx="60" cy="60" r="34" className="ring-inner" />
@@ -251,7 +262,7 @@ const LoadingScreen = ({ theme }: { theme: 'classic' | 'nier' }) => {
           <Zap size={28} className="core-icon text-orange" />
         </div>
       </div>
-      
+
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
         <div className="classic-loader-title">INITIALISATION SYSTÈME ÉNERGIE...</div>
         <div className="classic-loader-step">{steps[loadingStep]}</div>
@@ -272,6 +283,7 @@ type ShellyDashboardProps = {
 export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
   const [history, setHistory] = useState<ShellyHistoryItem[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [netatmo, setNetatmo] = useState<NetatmoData | null>(null);
   const [viewedHour, setViewedHour] = useState<Date>(new Date());
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
@@ -305,7 +317,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
     const now = viewedHour.getTime();
     const rise = sunTimes.sunrise.getTime();
     const set = sunTimes.sunset.getTime();
-    
+
     if (now >= rise && now <= set) {
       const pct = (now - rise) / (set - rise);
       const angle = pct * Math.PI;
@@ -327,13 +339,13 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
       return { isDay: false, x, y, pct };
     }
   }, [viewedHour, sunTimes]);
-  
+
   const isCurrentHour = useCallback(() => {
     const now = new Date();
     return viewedHour.getFullYear() === now.getFullYear() &&
-           viewedHour.getMonth() === now.getMonth() &&
-           viewedHour.getDate() === now.getDate() &&
-           viewedHour.getHours() === now.getHours();
+      viewedHour.getMonth() === now.getMonth() &&
+      viewedHour.getDate() === now.getDate() &&
+      viewedHour.getHours() === now.getHours();
   }, [viewedHour]);
 
   const changeHour = (offset: number) => {
@@ -360,6 +372,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
         const res = await fetch('/api/weather');
         const json = await res.json();
         if (json.daily) setWeather(json.daily);
+        if (json.netatmo) setNetatmo(json.netatmo);
       } catch (err) {
         console.error("Failed to fetch weather data", err);
       }
@@ -369,28 +382,37 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
     fetchWeather();
 
     let historyInterval: ReturnType<typeof setInterval> | undefined;
-    
+
     // Only auto-refresh history if viewing current hour
     if (isCurrentHour()) {
       historyInterval = setInterval(fetchHistory, 10000); // 10s
     }
 
+    // Auto-refresh weather (includes Netatmo) every 60 seconds
+    const weatherInterval = setInterval(fetchWeather, 60000);
+
     return () => {
       if (historyInterval) clearInterval(historyInterval);
+      if (weatherInterval) clearInterval(weatherInterval);
     };
   }, [viewedHour, isCurrentHour]);
 
   // Power Flow calculations
-  const solarVal = data ? Math.round(Math.abs(data.power_b)) : 0;
-  const hasSolar = data ? (data.power_b < 0 || solarVal > 0) : false;
-  
-  // If the house is negative (reinjection/export), the grid displays 0 because we import nothing.
-  const isReinjecting = data ? data.power_a < 0 : false;
-  const gridPower = data ? (isReinjecting ? 0 : Math.round(data.power_a + data.power_c)) : 0;
+  const rawSolar = data ? Math.round(Math.abs(data.power_b)) : 0;
+  const solarVal = rawSolar > 5 ? rawSolar : 0;
+  const hasSolar = solarVal > 0;
+
+  // Grid power (Réseau) is measured directly on Phase A.
+  const gridPower = data ? Math.round(data.power_a) : 0;
   const isImporting = gridPower > 5;
-  
-  const hasGridFlow = isImporting;
-  const hasMaisonFlow = data ? data.power_a > 5 : false;
+  const isReinjecting = gridPower < -5;
+
+  const hasGridFlow = isImporting || isReinjecting;
+
+  // House consumption is: Grid + Solar.
+  // We use the absolute value of solar to avoid issues if the clamp is inverted or not.
+  const maisonVal = data ? Math.max(0, Math.round(data.power_a + solarVal)) : 0;
+  const hasMaisonFlow = maisonVal > 5;
   const hasChauffeFlow = data ? data.power_c > 5 : false;
 
   const surplus = isReinjecting && data ? Math.round(Math.abs(data.power_a)) : 0;
@@ -425,7 +447,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
 
   return (
     <div className="dashboard-grid">
-      
+
       {/* Top Left: Power Flow Diagram */}
       <Panel style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -435,7 +457,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
         {/* Energy Flow Visualization Container */}
         <div className="power-flow-container">
           <div className="power-flow-wrapper">
-            
+
             {/* SVG paths overlays with animated dashes */}
             <svg viewBox="0 0 500 320" style={{ position: 'absolute', width: '500px', height: '320px', pointerEvents: 'none', top: 0, left: 0 }}>
               <defs>
@@ -480,23 +502,30 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               {(isReinjecting || hasSolar) && (
                 <>
                   <path d="M 90,75 C 170,75 200,160 250,160" stroke={isReinjecting ? "#00b0ff" : "#ffd54f"} strokeWidth="12" opacity="0.15" strokeLinecap="round" fill="none" />
-                  <path 
-                    d="M 90,75 C 170,75 200,160 250,160" 
-                    stroke={isReinjecting ? "#00b0ff" : "#ffd54f"} 
-                    strokeWidth="4" 
-                    strokeLinecap="round" 
-                    fill="none" 
-                    className={isReinjecting ? "flow-reinjection-blue" : "flow-solar"} 
+                  <path
+                    d="M 90,75 C 170,75 200,160 250,160"
+                    stroke={isReinjecting ? "#00b0ff" : "#ffd54f"}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    fill="none"
+                    className={isReinjecting ? "flow-reinjection-blue" : "flow-solar"}
                   />
                 </>
               )}
 
               {/* Grid (Top-Right) to Hub */}
-              <path d="M 410,75 C 330,75 300,160 250,160" stroke={hasGridFlow ? "rgba(79, 195, 247, 0.12)" : "var(--border-color)"} strokeWidth="4" fill="none" />
+              <path d="M 410,75 C 330,75 300,160 250,160" stroke={hasGridFlow ? (isImporting ? "rgba(79, 195, 247, 0.12)" : "rgba(0, 176, 255, 0.12)") : "var(--border-color)"} strokeWidth="4" fill="none" />
               {hasGridFlow && (
                 <>
-                  <path d="M 410,75 C 330,75 300,160 250,160" stroke="#4fc3f7" strokeWidth="12" opacity="0.15" strokeLinecap="round" fill="none" />
-                  <path d="M 410,75 C 330,75 300,160 250,160" stroke="#4fc3f7" strokeWidth="4" strokeLinecap="round" fill="none" className="flow-grid-import" />
+                  <path d="M 410,75 C 330,75 300,160 250,160" stroke={isImporting ? "#4fc3f7" : "#00b0ff"} strokeWidth="12" opacity="0.15" strokeLinecap="round" fill="none" />
+                  <path
+                    d="M 410,75 C 330,75 300,160 250,160"
+                    stroke={isImporting ? "#4fc3f7" : "#00b0ff"}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    fill="none"
+                    className={isImporting ? "flow-grid-import" : "flow-grid-export"}
+                  />
                 </>
               )}
 
@@ -505,13 +534,13 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               {(isReinjecting || hasMaisonFlow) && (
                 <>
                   <path d="M 250,160 C 200,160 170,245 90,245" stroke={isReinjecting ? "#00b0ff" : "#81c784"} strokeWidth="12" opacity="0.15" strokeLinecap="round" fill="none" />
-                  <path 
-                    d="M 250,160 C 200,160 170,245 90,245" 
-                    stroke={isReinjecting ? "#00b0ff" : "#81c784"} 
-                    strokeWidth="4" 
-                    strokeLinecap="round" 
-                    fill="none" 
-                    className={isReinjecting ? "flow-reinjection-blue" : "flow-maison"} 
+                  <path
+                    d="M 250,160 C 200,160 170,245 90,245"
+                    stroke={isReinjecting ? "#00b0ff" : "#81c784"}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    fill="none"
+                    className={isReinjecting ? "flow-reinjection-blue" : "flow-maison"}
                   />
                 </>
               )}
@@ -547,39 +576,39 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
             </div>
 
             {/* Nodes */}
-            <FlowNode 
-              title="Solaire (Phase B)" 
-              power={`${solarVal} W`} 
-              icon={Sun} 
-              color={hasSolar ? "#ffd54f" : "var(--text-secondary)"} 
-              style={{ left: '90px', top: '75px' }} 
+            <FlowNode
+              title="Solaire (Phase B)"
+              power={`${solarVal} W`}
+              icon={Sun}
+              color={hasSolar ? "#ffd54f" : "var(--text-secondary)"}
+              style={{ left: '90px', top: '75px' }}
               titleAttr="solar-node"
             />
-            
-            <FlowNode 
-              title={isImporting ? "Réseau (Import)" : "Réseau"} 
-              power={`${gridPower} W`} 
-              icon={Cable} 
-              color={isImporting ? "#4fc3f7" : "var(--text-secondary)"} 
-              style={{ left: '410px', top: '75px' }} 
+
+            <FlowNode
+              title={isImporting ? "Réseau (Import)" : (isReinjecting ? "Réseau (Export)" : "Réseau")}
+              power={`${gridPower} W`}
+              icon={Cable}
+              color={isImporting ? "#4fc3f7" : (isReinjecting ? "#00b0ff" : "var(--text-secondary)")}
+              style={{ left: '410px', top: '75px' }}
               titleAttr="grid-node"
             />
 
-            <FlowNode 
-              title="Maison (Phase A)" 
-              power={`${Math.round(data.power_a)} W`} 
-              icon={Home} 
-              color={isReinjecting ? "#00b0ff" : "#81c784"} 
-              style={{ left: '90px', top: '245px' }} 
+            <FlowNode
+              title="Maison"
+              power={`${maisonVal} W`}
+              icon={Home}
+              color={isReinjecting ? "#00b0ff" : "#81c784"}
+              style={{ left: '90px', top: '245px' }}
               titleAttr="maison-node"
             />
 
-            <FlowNode 
-              title="Chauffe-eau (Phase C)" 
-              power={`${Math.round(data.power_c)} W`} 
-              icon={Droplets} 
-              color="#4db6ac" 
-              style={{ left: '410px', top: '245px' }} 
+            <FlowNode
+              title="Chauffe-eau (Phase C)"
+              power={`${Math.round(data.power_c)} W`}
+              icon={Droplets}
+              color="#4db6ac"
+              style={{ left: '410px', top: '245px' }}
               titleAttr="chauffe-node"
             />
 
@@ -613,13 +642,13 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
             <IconButton onClick={() => changeHour(-1)}>
               <ChevronLeft size={18} strokeWidth={1.5} />
             </IconButton>
-            
+
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', minWidth: '130px', textAlign: 'center' }}>
               {viewedHour.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} - {viewedHour.getHours().toString().padStart(2, '0')}:00
             </div>
-            
-            <IconButton 
-              onClick={() => changeHour(1)} 
+
+            <IconButton
+              onClick={() => changeHour(1)}
               disabled={isCurrentHour()}
             >
               <ChevronRight size={18} strokeWidth={1.5} />
@@ -632,27 +661,27 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               <AreaChart data={history}>
                 <defs>
                   <linearGradient id="colorMaison" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={theme === 'nier' ? 0.05 : 0.25}/>
-                    <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={theme === 'nier' ? 0.05 : 0.25} />
+                    <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorSolaire" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-solar)" stopOpacity={theme === 'nier' ? 0.05 : 0.25}/>
-                    <stop offset="95%" stopColor="var(--accent-solar)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-solar)" stopOpacity={theme === 'nier' ? 0.05 : 0.25} />
+                    <stop offset="95%" stopColor="var(--accent-solar)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorChauffeEau" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-teal)" stopOpacity={theme === 'nier' ? 0.05 : 0.25}/>
-                    <stop offset="95%" stopColor="var(--accent-teal)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-teal)" stopOpacity={theme === 'nier' ? 0.05 : 0.25} />
+                    <stop offset="95%" stopColor="var(--accent-teal)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: theme === 'nier' ? '#C5C2BB' : 'var(--bg-color)', 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: theme === 'nier' ? '0px' : '8px', 
-                    color: 'var(--text-primary)' 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: theme === 'nier' ? '#C5C2BB' : 'var(--bg-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: theme === 'nier' ? '0px' : '8px',
+                    color: 'var(--text-primary)'
                   }}
                 />
                 <Area type="monotone" dataKey="Maison" stroke="var(--accent-blue)" strokeWidth={3} fillOpacity={1} fill="url(#colorMaison)" dot={maisonCount === 1 ? { r: 4, fill: 'var(--accent-blue)', strokeWidth: 0 } : false} activeDot={{ r: 8, fill: 'var(--accent-blue)' }} connectNulls={false} />
@@ -678,14 +707,14 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               sortedAppliances.filter(app => app.status === 'free').map((app, index) => {
                 const Icon = getApplianceIcon(app.icon);
                 return (
-                  <div 
-                    key={app.id} 
+                  <div
+                    key={app.id}
                     data-tooltip={`${app.name} (${app.power} W)`}
                     className={`appliance-icon-badge tooltip-trigger ${index === 0 ? 'tooltip-left' : ''}`}
-                    style={{ 
-                      borderColor: theme === 'nier' ? 'var(--border-color)' : 'rgba(129, 199, 132, 0.5)', 
-                      cursor: 'help', 
-                      background: theme === 'nier' ? 'var(--panel-bg)' : 'rgba(129, 199, 132, 0.05)' 
+                    style={{
+                      borderColor: theme === 'nier' ? 'var(--border-color)' : 'rgba(129, 199, 132, 0.5)',
+                      cursor: 'help',
+                      background: theme === 'nier' ? 'var(--panel-bg)' : 'rgba(129, 199, 132, 0.05)'
                     }}
                   >
                     <Icon size={16} color={theme === 'nier' ? 'var(--accent-green)' : '#81c784'} strokeWidth={1.5} style={{ pointerEvents: 'none' }} />
@@ -702,11 +731,11 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               const Icon = getApplianceIcon(app.icon);
               const isFree = app.status === 'free';
               const isPartial = app.status === 'partial';
-              
+
               let statusClass = 'appliance-status-unavailable';
               let iconColor = 'var(--text-secondary)';
               let iconBorderColor = 'var(--border-color)';
-              
+
               if (isFree) {
                 statusClass = 'appliance-status-free';
                 iconColor = theme === 'nier' ? 'var(--accent-green)' : '#81c784';
@@ -720,7 +749,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               return (
                 <div key={app.id} className="appliance-item">
                   <div className="appliance-info">
-                    <div 
+                    <div
                       className="appliance-icon-badge"
                       style={{ borderColor: iconBorderColor }}
                     >
@@ -744,15 +773,15 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
         <div className="details-wrapper">
           <Panel className="details-panel">
             <MetricDetail
-              title={theme === 'nier' ? '01 / DETAILS - MAISON' : 'DETAILS - MAISON'}
+              title={theme === 'nier' ? '01 / MAISON' : 'MAISON'}
               voltage={data.voltage_a}
               current={data.current_a}
             />
-            
+
             <div className="divider"></div>
 
             <MetricDetail
-              title={theme === 'nier' ? '02 / DETAILS - SOLAIRE' : 'DETAILS - SOLAIRE'}
+              title={theme === 'nier' ? '02 / SOLAIRE' : 'SOLAIRE'}
               voltage={data.voltage_b}
               current={data.current_b}
             />
@@ -760,7 +789,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
             <div className="divider"></div>
 
             <MetricDetail
-              title={theme === 'nier' ? '03 / DETAILS - CHAUFFE-EAU' : 'DETAILS - CHAUFFE-EAU'}
+              title={theme === 'nier' ? '03 / CHAUFFE-EAU' : 'CHAUFFE-EAU'}
               voltage={data.voltage_c}
               current={data.current_c}
             />
@@ -773,35 +802,35 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
                 <Sun size={16} strokeWidth={1.5} color="var(--accent-solar)" className="spin-slow" />
                 <span>{theme === 'nier' ? 'SOLEIL // EPHEMERIDE' : 'SOLEIL & ÉPHÉMÉRIDE'}</span>
               </div>
-              
+
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexGrow: 1 }}>
                 {/* Arc SVG */}
                 <div style={{ width: '100px', height: '60px', position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
                   <svg viewBox="0 0 100 50" style={{ width: '100%', height: '100%' }}>
-                    <path 
-                      d="M 10,50 A 40,40 0 0,1 90,50" 
-                      fill="none" 
-                      stroke={sunPosition.isDay ? "rgba(255, 213, 79, 0.15)" : "rgba(100, 110, 180, 0.15)"} 
-                      strokeWidth="3" 
-                      strokeDasharray="4,4" 
+                    <path
+                      d="M 10,50 A 40,40 0 0,1 90,50"
+                      fill="none"
+                      stroke={sunPosition.isDay ? "rgba(255, 213, 79, 0.15)" : "rgba(100, 110, 180, 0.15)"}
+                      strokeWidth="3"
+                      strokeDasharray="4,4"
                     />
                     <line x1="5" y1="50" x2="95" y2="50" stroke="var(--border-color)" strokeWidth="2" />
-                    
+
                     {sunPosition.isDay ? (
-                      <circle 
-                        cx={sunPosition.x} 
-                        cy={sunPosition.y} 
-                        r="5" 
-                        fill={theme === 'nier' ? 'var(--accent-solar)' : '#ffd54f'} 
-                        style={theme === 'nier' ? {} : { filter: 'drop-shadow(0 0 6px #ffd54f)' }} 
+                      <circle
+                        cx={sunPosition.x}
+                        cy={sunPosition.y}
+                        r="5"
+                        fill={theme === 'nier' ? 'var(--accent-solar)' : '#ffd54f'}
+                        style={theme === 'nier' ? {} : { filter: 'drop-shadow(0 0 6px #ffd54f)' }}
                       />
                     ) : (
-                      <circle 
-                        cx={sunPosition.x} 
-                        cy={sunPosition.y} 
-                        r="4.5" 
-                        fill={theme === 'nier' ? 'var(--accent-blue)' : '#9fa8da'} 
-                        style={theme === 'nier' ? {} : { filter: 'drop-shadow(0 0 6px #9fa8da)' }} 
+                      <circle
+                        cx={sunPosition.x}
+                        cy={sunPosition.y}
+                        r="4.5"
+                        fill={theme === 'nier' ? 'var(--accent-blue)' : '#9fa8da'}
+                        style={theme === 'nier' ? {} : { filter: 'drop-shadow(0 0 6px #9fa8da)' }}
                       />
                     )}
                   </svg>
@@ -847,14 +876,14 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
                     <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>12 Août 2026</div>
                     <div style={{ fontSize: '10px', color: theme === 'nier' ? 'var(--text-secondary)' : '#b39ddb', fontWeight: 500 }}>Solaire Totale (Partielle en FR)</div>
                   </div>
-                  
-                  <div style={{ 
-                    background: theme === 'nier' ? 'var(--panel-bg-alt)' : 'rgba(179, 157, 219, 0.1)', 
-                    border: `1px solid ${theme === 'nier' ? 'var(--border-color)' : 'rgba(179, 157, 219, 0.3)'}`, 
-                    color: theme === 'nier' ? 'var(--text-primary)' : '#b39ddb', 
-                    fontSize: '10px', 
-                    fontWeight: 700, 
-                    padding: '3px 8px', 
+
+                  <div style={{
+                    background: theme === 'nier' ? 'var(--panel-bg-alt)' : 'rgba(179, 157, 219, 0.1)',
+                    border: `1px solid ${theme === 'nier' ? 'var(--border-color)' : 'rgba(179, 157, 219, 0.3)'}`,
+                    color: theme === 'nier' ? 'var(--text-primary)' : '#b39ddb',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '3px 8px',
                     borderRadius: theme === 'nier' ? '0px' : '6px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
@@ -893,6 +922,68 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
             {theme === 'nier' ? `METEO // ${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}` : `MÉTÉO - ${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}`}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, justifyContent: 'center' }}>
+            {netatmo && (
+              <div style={{
+                background: 'var(--bg-color)',
+                borderRadius: theme === 'nier' ? '0px' : '8px',
+                border: '1px solid var(--border-color)',
+                padding: '10px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '5px', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-orange)' }}>
+                    {theme === 'nier' ? 'VALLONS-DE-L\'ERDRE // TEMPS REEL' : 'Vallons-de-l\'Erdre (Temps réel)'}
+                  </span>
+                  <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
+                    {new Date(netatmo.updated_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ padding: '4px', background: 'var(--panel-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Thermometer size={14} color="var(--accent-orange)" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Température</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700 }}>{netatmo.temp}°C</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ padding: '4px', background: 'var(--panel-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Droplets size={14} color="var(--accent-teal)" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Humidité</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700 }}>{netatmo.humidity}%</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ padding: '4px', background: 'var(--panel-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Info size={14} color="var(--accent-blue)" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Pression</div>
+                      <div style={{ fontSize: '12px', fontWeight: 700 }}>{netatmo.pressure} mb</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ padding: '4px', background: 'var(--panel-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CloudRain size={14} color="var(--accent-solar)" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Pluie (1h / 24h)</div>
+                      <div style={{ fontSize: '11px', fontWeight: 700 }}>{netatmo.rain_1h} / {netatmo.rain_today} mm</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             {weather ? (
               weather.time.slice(0, 3).map((day: string, idx: number) => {
                 const code = weather.weathercode[idx];
@@ -903,7 +994,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
                 const dateObj = new Date(day);
                 const dayName = dateObj.toLocaleDateString('fr-FR', { weekday: 'long' });
                 const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
-                
+
                 return (
                   <div key={day} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg-color)', borderRadius: theme === 'nier' ? '0px' : '8px', border: '1px solid var(--border-color)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

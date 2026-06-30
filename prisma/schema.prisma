@@ -25,6 +25,8 @@ model ShellyData {
   voltage_c Float
   current_c Float
   power_c   Float
+
+  @@index([timestamp])
 }
 
 model SystemSettings {

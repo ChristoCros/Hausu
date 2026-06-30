@@ -10,12 +10,23 @@ const fetchShellyData = async () => {
   try {
     const shellyIp = process.env.NEXT_PUBLIC_SHELLY_IP;
 
+    // Security: Validate IP format to prevent SSRF
+    const ipv4Regex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/;
+    if (!shellyIp || !ipv4Regex.test(shellyIp)) {
+      throw new Error("Invalid or missing Shelly IP address format");
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(`http://${shellyIp}/rpc/Shelly.GetStatus`, {
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
+    let res;
+    try {
+      res = await fetch(`http://${shellyIp}/rpc/Shelly.GetStatus`, {
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
 
@@ -41,4 +52,14 @@ const fetchShellyData = async () => {
 
 setInterval(fetchShellyData, 60000);
 fetchShellyData(); // initial run
-console.log("Shelly poller started (1 min interval)...");;
+console.log("Shelly poller started (1 min interval)...");
+
+// Graceful shutdown
+const gracefulShutdown = async () => {
+  console.log("\n[Worker] Shutting down, disconnecting Prisma client...");
+  await prisma.$disconnect();
+  process.exit(0);
+};
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);

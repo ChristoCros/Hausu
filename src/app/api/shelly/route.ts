@@ -45,11 +45,13 @@ export async function GET(request: Request) {
       const match = historyRaw.find(item => new Date(item.timestamp).getMinutes() === i);
       
       if (match) {
+        const rawSolar = Math.round(Math.abs(match.power_b));
+        const solarVal = rawSolar > 5 ? rawSolar : 0;
         history.push({
           time: timeStr,
-          Maison: match.power_a,
-          Solaire: Math.abs(match.power_b),
-          ChauffeEau: match.power_c
+          Maison: Math.max(0, Math.round(match.power_a + solarVal)),
+          Solaire: solarVal,
+          ChauffeEau: Math.round(match.power_c)
         });
       } else {
         history.push({

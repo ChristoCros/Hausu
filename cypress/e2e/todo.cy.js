@@ -19,6 +19,25 @@ describe('Planificateur & Actions', () => {
     cy.get('.todo-column-title-input').first().should('have.value', 'Maison');
     cy.get('.todo-column-title-input').eq(1).should('have.value', 'Travail');
     cy.contains('Vérifier la production solaire').should('be.visible');
+
+    // Design Assertions for Layout and Styles
+    // Check main planner layout
+    cy.get('.todo-board')
+      .should('have.css', 'display', 'flex')
+      .and('have.css', 'gap', '15px');
+
+    // Check column layout
+    cy.get('.todo-column').first()
+      .should('have.css', 'border-radius', '12px')
+      .and('have.css', 'background-color')
+      .and('include', 'rgba(16, 18, 35, 0.45)'); // var(--panel-bg)
+
+    // Check action card layout
+    cy.get('.todo-item-card').first()
+      .should('have.css', 'border-radius', '8px')
+      .and('have.css', 'display', 'flex')
+      .and('have.css', 'border')
+      .and('include', 'rgba(255, 255, 255, 0.05)'); // var(--border-color)
   });
 
   it('permet d\'ajouter une nouvelle liste (colonne)', () => {
