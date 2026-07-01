@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-const prisma = new PrismaClient();
+
+import { writeApi, Point } from '../lib/influxdb';
 
 /* ------------------- Shelly Polling ------------------- */
 const fetchShellyData = async () => {
@@ -35,14 +35,21 @@ const fetchShellyData = async () => {
     const phaseC = data['em1:2'];
 
     if (phaseA && phaseB && phaseC) {
-      await prisma.shellyData.create({
-        data: {
-          voltage_a: phaseA.voltage, current_a: phaseA.current, power_a: phaseA.act_power,
-          voltage_b: phaseB.voltage, current_b: phaseB.current, power_b: phaseB.act_power,
-          voltage_c: phaseC.voltage, current_c: phaseC.current, power_c: phaseC.act_power,
-        }
-      });
-      console.log(`[${new Date().toISOString()}] Shelly data saved.`);
+      const point = new Point('shelly_power')
+        .floatField('voltage_a', phaseA.voltage)
+        .floatField('current_a', phaseA.current)
+        .floatField('power_a', phaseA.act_power)
+        .floatField('voltage_b', phaseB.voltage)
+        .floatField('current_b', phaseB.current)
+        .floatField('power_b', phaseB.act_power)
+        .floatField('voltage_c', phaseC.voltage)
+        .floatField('current_c', phaseC.current)
+        .floatField('power_c', phaseC.act_power);
+      
+      writeApi.writePoint(point);
+      await writeApi.flush();
+      
+      console.log(`[${new Date().toISOString()}] Shelly data saved to InfluxDB.`);
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -56,8 +63,8 @@ console.log("Shelly poller started (1 min interval)...");
 
 // Graceful shutdown
 const gracefulShutdown = async () => {
-  console.log("\n[Worker] Shutting down, disconnecting Prisma client...");
-  await prisma.$disconnect();
+  console.log("\n[Worker] Shutting down, flushing InfluxDB write API...");
+  await writeApi.close();
   process.exit(0);
 };
 

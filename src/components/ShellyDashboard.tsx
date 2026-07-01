@@ -409,9 +409,9 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
 
   const hasGridFlow = isImporting || isReinjecting;
 
-  // House consumption is: Grid + Solar.
+  // House consumption is: Grid + Solar - Chauffe-eau.
   // We use the absolute value of solar to avoid issues if the clamp is inverted or not.
-  const maisonVal = data ? Math.max(0, Math.round(data.power_a + solarVal)) : 0;
+  const maisonVal = data ? Math.max(0, Math.round(data.power_a + solarVal - data.power_c)) : 0;
   const hasMaisonFlow = maisonVal > 5;
   const hasChauffeFlow = data ? data.power_c > 5 : false;
 

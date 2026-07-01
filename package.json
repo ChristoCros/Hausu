@@ -11,6 +11,7 @@
     "cypress:open": "cypress open"
   },
   "dependencies": {
+    "@influxdata/influxdb-client": "^1.35.0",
     "@prisma/client": "^6.19.3",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
