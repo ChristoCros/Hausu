@@ -50,7 +50,7 @@ export async function GET(request: Request) {
       const slotTime = new Date(startDate);
       slotTime.setMinutes(i);
       
-      const timeStr = slotTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const timeStr = slotTime.toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute:'2-digit' });
       
       // Find a DB entry that matches this exact minute
       const match = historyRaw.find(item => item.timestamp.getMinutes() === i);

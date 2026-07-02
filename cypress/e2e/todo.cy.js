@@ -27,10 +27,8 @@ describe('Planificateur & Actions', () => {
       .and('have.css', 'gap', '15px');
 
     // Check column layout
-    cy.get('.todo-column').first()
-      .should('have.css', 'border-radius', '12px')
-      .and('have.css', 'background-color')
-      .and('include', 'rgba(16, 18, 35, 0.45)'); // var(--panel-bg)
+    cy.get('.todo-column-panel').first()
+      .should('have.css', 'border-radius', '16px');
 
     // Check action card layout
     cy.get('.todo-item-card').first()

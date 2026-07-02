@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Zap, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Sunrise, Sunset, Eclipse, Info, Thermometer } from 'lucide-react';
+import { Zap, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Fan, Sunrise, Sunset, Eclipse, Info, Thermometer } from 'lucide-react';
 import SunCalc from 'suncalc';
 import Panel from './ui/Panel';
 import IconButton from './ui/IconButton';
@@ -64,6 +64,7 @@ const getApplianceIcon = (iconName: string) => {
     case 'BatteryCharging': return BatteryCharging;
     case 'WashingMachine': return WashingMachine;
     case 'ChefHat': return ChefHat;
+    case 'Fan': return Fan;
     default: return Zap;
   }
 };
@@ -82,6 +83,7 @@ const APPLIANCES_LIST = [
   { id: 'lave_linge', name: 'Lave-linge Samsung', power: 2000, icon: 'WashingMachine' },
   { id: 'bouilloire', name: 'Bouilloire', power: 2000, icon: 'Coffee' },
   { id: 'four', name: 'Four', power: 2725, icon: 'ChefHat' },
+  { id: 'déshydrateur', name: 'Déshydrateur', power: 350, icon: 'Fan' },
 ];
 
 const getWeatherIcon = (code: number) => {
@@ -618,7 +620,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
 
       {/* Top Right: Graphique */}
       <Panel className="history-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <h2 className="title-font" style={{ fontSize: '20px', letterSpacing: '2px', margin: 0 }}>
               {theme === 'nier' ? '[ HISTORIQUE ]' : 'HISTORIQUE'}
@@ -921,7 +923,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
           <div style={{ color: 'var(--text-secondary)', fontSize: '14px', letterSpacing: '1px', marginBottom: '15px' }}>
             {theme === 'nier' ? `METEO // ${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}` : `MÉTÉO - ${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()}`}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, justifyContent: 'flex-start' }}>
             {netatmo && (
               <div style={{
                 background: 'var(--bg-color)',

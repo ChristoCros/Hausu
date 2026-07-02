@@ -227,6 +227,8 @@ export default function WeatherForecast({ theme }: WeatherForecastProps) {
           align-items: center;
           justify-content: space-between;
           padding: 15px 20px;
+          flex-wrap: wrap;
+          gap: 15px;
         }
 
         .weather-header-info {
@@ -259,8 +261,9 @@ export default function WeatherForecast({ theme }: WeatherForecastProps) {
 
         .weather-meta-badge-row {
           display: flex;
-          gap: 8px;
-          margin-top: 4px;
+          gap: 10px;
+          margin-top: 5px;
+          flex-wrap: wrap;
         }
 
         .weather-meta-badge {
@@ -302,6 +305,10 @@ export default function WeatherForecast({ theme }: WeatherForecastProps) {
           background: rgba(255, 136, 0, 0.05);
           color: var(--text-primary);
           box-shadow: 0 0 10px rgba(255, 136, 0, 0.1);
+        }
+
+        .weather-day-tab:last-child {
+          margin-right: 15px;
         }
 
         .theme-nier .weather-day-tab {
@@ -428,6 +435,12 @@ export default function WeatherForecast({ theme }: WeatherForecastProps) {
           margin-bottom: 20px;
         }
 
+        @media (max-width: 480px) {
+          .weather-detail-cards {
+            grid-template-columns: 1fr;
+          }
+        }
+
         .weather-detail-card {
           background: var(--panel-bg);
           border: 1px solid var(--border-color);
@@ -522,7 +535,7 @@ export default function WeatherForecast({ theme }: WeatherForecastProps) {
       {/* Layout Grid */}
       <div className="weather-grid">
         {/* Left Side: Meteorological Table */}
-        <Panel style={{ display: 'flex', flexDirection: 'column' }}>
+        <Panel style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <h3 className="title-font" style={{ margin: 0, fontSize: '16px', letterSpacing: '1px' }}>
               {theme === 'nier' ? 'RELEVES HORAIRES // DETAIL' : `DÉTAILS DES PRÉVISIONS - ${daysData[selectedDayIndex]?.dayName}`}
@@ -611,7 +624,7 @@ export default function WeatherForecast({ theme }: WeatherForecastProps) {
         </Panel>
 
         {/* Right Side: Key Indicators & Charts */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="weather-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
           {/* Daily summaries */}
           {dailySummary && (
             <div className="weather-detail-cards">
