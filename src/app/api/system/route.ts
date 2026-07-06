@@ -42,18 +42,29 @@ export async function GET() {
 
     // Fallback temperature reading for DietPi/Alpine
     let finalCpuTemp = cpuTemp;
-    if (!finalCpuTemp || finalCpuTemp.main === null || finalCpuTemp.main === 0) {
+    if (!finalCpuTemp || finalCpuTemp.main === null || finalCpuTemp.main === 0 || finalCpuTemp.main === -1) {
       try {
         const fs = require('fs');
-        const execSync = require('child_process').execSync;
-        // Try to find a temp1_input file in hwmon
-        const tempPath = execSync("find /sys/class/hwmon/ /sys/devices/ -name 'temp1_input' 2>/dev/null | head -n 1").toString().trim();
-        if (tempPath) {
-          const tempVal = parseInt(fs.readFileSync(tempPath, 'utf8').trim(), 10);
+        
+        // Let's check common hwmon paths directly without execSync
+        let tempVal = null;
+        const hwmonPath = '/sys/class/hwmon';
+        if (fs.existsSync(hwmonPath)) {
+          const hwmons = fs.readdirSync(hwmonPath);
+          for (const hwmon of hwmons) {
+            const temp1Path = `${hwmonPath}/${hwmon}/temp1_input`;
+            if (fs.existsSync(temp1Path)) {
+              tempVal = parseInt(fs.readFileSync(temp1Path, 'utf8').trim(), 10);
+              break;
+            }
+          }
+        }
+        
+        if (tempVal !== null) {
           finalCpuTemp = { main: tempVal / 1000, cores: [], max: tempVal / 1000, socket: [], chipset: null };
         }
       } catch (e) {
-        // Fallback failed, leave as is
+        console.error("Temperature fallback failed:", e);
       }
     }
 

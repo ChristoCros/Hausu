@@ -282,7 +282,7 @@ export default function ServerDashboard({ theme }: ServerDashboardProps) {
               <div className="sd-speed-ring sd-speed-ring-read" />
               <div className="sd-speed-inner" />
               <div className="sd-speed-needle" style={{ transform: `rotate(${getRotation(rxSpeed)}deg)` }} />
-              <div className="sd-speed-val">{(rxSpeed / 1024 / 1024).toFixed(0)}</div>
+              <div className="sd-speed-val">{(rxSpeed / 1024 / 1024).toFixed(2)}</div>
               <div className="sd-speed-lbl">Read</div>
             </div>
             {/* Write */}
@@ -290,7 +290,7 @@ export default function ServerDashboard({ theme }: ServerDashboardProps) {
               <div className="sd-speed-ring sd-speed-ring-write" />
               <div className="sd-speed-inner" />
               <div className="sd-speed-needle write" style={{ transform: `rotate(${getRotation(txSpeed)}deg)` }} />
-              <div className="sd-speed-val">{(txSpeed / 1024 / 1024).toFixed(0)}</div>
+              <div className="sd-speed-val">{(txSpeed / 1024 / 1024).toFixed(2)}</div>
               <div className="sd-speed-lbl">Write</div>
             </div>
           </div>
