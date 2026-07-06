@@ -19,7 +19,7 @@ export async function GET() {
       si.mem(),
       si.fsSize(),
       si.osInfo(),
-      si.networkStats('*'),
+      si.networkStats(),
       si.dockerContainers(true).catch(() => []), // fallback to empty if docker not available
     ]);
 

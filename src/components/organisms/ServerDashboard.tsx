@@ -38,8 +38,9 @@ export default function ServerDashboard({ theme }: ServerDashboardProps) {
           setData(json);
           setLoading(false);
 
-          const currentRx = json.networkStats.reduce((acc: number, curr: any) => acc + (curr.rx_bytes || 0), 0);
-          const currentTx = json.networkStats.reduce((acc: number, curr: any) => acc + (curr.tx_bytes || 0), 0);
+          const statsArray = Array.isArray(json.networkStats) ? json.networkStats : (json.networkStats ? [json.networkStats] : []);
+          const currentRx = statsArray.reduce((acc: number, curr: any) => acc + (curr.rx_bytes || curr.rx || 0), 0);
+          const currentTx = statsArray.reduce((acc: number, curr: any) => acc + (curr.tx_bytes || curr.tx || 0), 0);
           const now = Date.now();
 
           if (prevNetwork.current) {

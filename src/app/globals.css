@@ -865,6 +865,9 @@ h3,
     padding: 15px 20px;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     gap: 10px;
+    position: sticky;
+    top: 15px;
+    z-index: 100;
   }
 
   .sidebar-logo {
@@ -956,6 +959,7 @@ h3,
     padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
     box-shadow: 20px 0 50px rgba(0, 0, 0, 0.7);
     margin: 0;
+    box-sizing: border-box;
   }
 
   .sidebar-nav-container.open {
