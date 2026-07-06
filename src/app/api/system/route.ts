@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import si from 'systeminformation';
+import fs from 'fs';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,8 +45,6 @@ export async function GET() {
     let finalCpuTemp = cpuTemp;
     if (!finalCpuTemp || finalCpuTemp.main === null || finalCpuTemp.main === 0 || finalCpuTemp.main === -1) {
       try {
-        const fs = require('fs');
-        
         // Let's check common hwmon paths directly without execSync
         let tempVal = null;
         const hwmonPath = '/sys/class/hwmon';
