@@ -65,7 +65,7 @@ async function fetchNetatmoFromApi(
   const publicData = await publicDataRes.json();
   
   // Find station by ID (configured in .env)
-  const targetStationId = process.env.NETATMO_STATION_ID || '70:ee:50:b0:91:7c';
+  const targetStationId = process.env.NETATMO_STATION_ID || '00:00:00:00:00:00';
   const station = publicData.body?.find((s: NetatmoStation) => s._id === targetStationId);
   if (!station) throw new Error(`Station ${targetStationId} not found in public data`);
   
@@ -121,15 +121,15 @@ async function fetchNetatmoFromApi(
     pressure,
     rain_1h,
     rain_today,
-    station_name: "Vallons-de-l'Erdre",
+    station_name: "Station Météo",
     altitude: station.place?.altitude ?? 60,
     updated_at: new Date().toISOString()
   };
 }
 
 export async function GET() {
-  const lat = parseFloat(process.env.NEXT_PUBLIC_LATITUDE || '47.456');
-  const lon = parseFloat(process.env.NEXT_PUBLIC_LONGITUDE || '-1.161');
+  const lat = parseFloat(process.env.NEXT_PUBLIC_LATITUDE || '48.8566');
+  const lon = parseFloat(process.env.NEXT_PUBLIC_LONGITUDE || '2.3522');
 
   let netatmoData = null;
   const clientId = process.env.NETATMO_CLIENT_ID;

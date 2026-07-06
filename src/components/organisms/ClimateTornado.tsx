@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Thermometer, RefreshCw, AlertTriangle, Globe } from 'lucide-react';
-import Panel from './ui/Panel';
+import Panel from '../atoms/Panel';
 
 
 // ============================================================

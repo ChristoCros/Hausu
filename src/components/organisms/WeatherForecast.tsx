@@ -27,7 +27,7 @@ import {
   Navigation,
   Calendar
 } from 'lucide-react';
-import Panel from './ui/Panel';
+import Panel from '../atoms/Panel';
 
 interface WeatherForecastProps {
   theme: 'classic' | 'nier';

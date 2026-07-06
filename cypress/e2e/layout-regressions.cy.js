@@ -61,4 +61,20 @@ describe('Layout Regressions', () => {
     cy.get('.content-area')
       .should('have.css', 'padding-right', '5px');
   });
+
+  it('Sidebar panel and Content panel should have identical width on mobile', () => {
+    cy.viewport('iphone-xr');
+    cy.visit('/');
+    cy.wait('@getLive');
+    cy.wait('@getHistory');
+
+    let sidebarWidth;
+    cy.get('.sidebar-panel').invoke('outerWidth').then((width) => {
+      sidebarWidth = width;
+    });
+
+    cy.get('.content-area > .panel').first().invoke('outerWidth').should((contentWidth) => {
+      expect(contentWidth).to.eq(sidebarWidth);
+    });
+  });
 });

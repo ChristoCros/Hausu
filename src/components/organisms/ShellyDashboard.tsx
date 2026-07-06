@@ -4,9 +4,9 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Zap, Home, Sun, Droplets, ChevronLeft, ChevronRight, Cloud, CloudRain, CloudSun, CloudLightning, Snowflake, CloudDrizzle, Cable, Coffee, Flame, Bath, Microwave, BatteryCharging, WashingMachine, ChefHat, Fan, Sunrise, Sunset, Eclipse, Info, Thermometer } from 'lucide-react';
 import SunCalc from 'suncalc';
-import Panel from './ui/Panel';
-import IconButton from './ui/IconButton';
-import MetricDetail from './shared/MetricDetail';
+import Panel from '../atoms/Panel';
+import IconButton from '../atoms/IconButton';
+import MetricDetail from '../molecules/MetricDetail';
 
 interface ShellyLiveData {
   voltage_a: number;
@@ -283,6 +283,7 @@ type ShellyDashboardProps = {
 };
 
 export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
+  const [historyMode, setHistoryMode] = useState<'hour' | 'day'>('hour');
   const [history, setHistory] = useState<ShellyHistoryItem[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [netatmo, setNetatmo] = useState<NetatmoData | null>(null);
@@ -342,17 +343,26 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
     }
   }, [viewedHour, sunTimes]);
 
-  const isCurrentHour = useCallback(() => {
+  const isCurrentTime = useCallback(() => {
     const now = new Date();
+    if (historyMode === 'day') {
+      return viewedHour.getFullYear() === now.getFullYear() &&
+        viewedHour.getMonth() === now.getMonth() &&
+        viewedHour.getDate() === now.getDate();
+    }
     return viewedHour.getFullYear() === now.getFullYear() &&
       viewedHour.getMonth() === now.getMonth() &&
       viewedHour.getDate() === now.getDate() &&
       viewedHour.getHours() === now.getHours();
-  }, [viewedHour]);
+  }, [viewedHour, historyMode]);
 
-  const changeHour = (offset: number) => {
+  const changeTime = (offset: number) => {
     const newDate = new Date(viewedHour);
-    newDate.setHours(newDate.getHours() + offset);
+    if (historyMode === 'day') {
+      newDate.setDate(newDate.getDate() + offset);
+    } else {
+      newDate.setHours(newDate.getHours() + offset);
+    }
     setViewedHour(newDate);
   };
 
@@ -360,7 +370,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
     // 1. Fetch History Data
     const fetchHistory = async () => {
       try {
-        const res = await fetch(`/api/shelly?hour=${viewedHour.toISOString()}&t=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetch(`/api/shelly?hour=${viewedHour.toISOString()}&mode=${historyMode}&t=${Date.now()}`, { cache: 'no-store' });
         const json = await res.json();
         if (json.history) setHistory(json.history);
       } catch (err) {
@@ -385,8 +395,8 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
 
     let historyInterval: ReturnType<typeof setInterval> | undefined;
 
-    // Only auto-refresh history if viewing current hour
-    if (isCurrentHour()) {
+    // Only auto-refresh history if viewing current hour/day
+    if (isCurrentTime()) {
       historyInterval = setInterval(fetchHistory, 10000); // 10s
     }
 
@@ -397,7 +407,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
       if (historyInterval) clearInterval(historyInterval);
       if (weatherInterval) clearInterval(weatherInterval);
     };
-  }, [viewedHour, isCurrentHour]);
+  }, [viewedHour, isCurrentTime, historyMode]);
 
   // Power Flow calculations
   const rawSolar = data ? Math.round(Math.abs(data.power_b)) : 0;
@@ -622,9 +632,41 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
       <Panel className="history-panel" style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
-            <h2 className="title-font" style={{ fontSize: '20px', letterSpacing: '2px', margin: 0 }}>
-              {theme === 'nier' ? '[ HISTORIQUE ]' : 'HISTORIQUE'}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <h2 className="title-font" style={{ fontSize: '20px', letterSpacing: '2px', margin: 0 }}>
+                {theme === 'nier' ? '[ HISTORIQUE ]' : 'HISTORIQUE'}
+              </h2>
+              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '3px', borderRadius: '8px' }}>
+                <button
+                  onClick={() => setHistoryMode('hour')}
+                  style={{
+                    background: historyMode === 'hour' ? 'var(--text-primary)' : 'transparent',
+                    color: historyMode === 'hour' ? 'var(--bg-color)' : 'var(--text-secondary)',
+                    border: 'none',
+                    padding: '4px 12px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >1H</button>
+                <button
+                  onClick={() => setHistoryMode('day')}
+                  style={{
+                    background: historyMode === 'day' ? 'var(--text-primary)' : 'transparent',
+                    color: historyMode === 'day' ? 'var(--bg-color)' : 'var(--text-secondary)',
+                    border: 'none',
+                    padding: '4px 12px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >24H</button>
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: '15px', fontSize: '11px', marginTop: '5px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ display: 'inline-block', width: '10px', height: '3px', backgroundColor: 'var(--accent-blue)', borderRadius: theme === 'nier' ? '0' : '2px' }} />
@@ -641,17 +683,19 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <IconButton onClick={() => changeHour(-1)}>
+            <IconButton onClick={() => changeTime(-1)}>
               <ChevronLeft size={18} strokeWidth={1.5} />
             </IconButton>
 
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', minWidth: '130px', textAlign: 'center' }}>
-              {viewedHour.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} - {viewedHour.getHours().toString().padStart(2, '0')}:00
+              {historyMode === 'day' 
+                ? viewedHour.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+                : `${viewedHour.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} - ${viewedHour.getHours().toString().padStart(2, '0')}:00`}
             </div>
 
             <IconButton
-              onClick={() => changeHour(1)}
-              disabled={isCurrentHour()}
+              onClick={() => changeTime(1)}
+              disabled={isCurrentTime()}
             >
               <ChevronRight size={18} strokeWidth={1.5} />
             </IconButton>

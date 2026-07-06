@@ -56,6 +56,8 @@ h3,
   padding: 20px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   transition: all 0.3s ease;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Custom Scrollbar */
@@ -763,7 +765,15 @@ h3,
   }
 
   .power-flow-container {
-    min-height: 275px;
+    min-height: 272px;
+  }
+
+  .node-title {
+    font-size: 10px;
+  }
+
+  .node-power {
+    font-size: 12px;
   }
 }
 
@@ -773,7 +783,7 @@ h3,
   }
 
   .power-flow-container {
-    min-height: 225px;
+    min-height: 224px;
   }
 }
 
@@ -785,6 +795,29 @@ h3,
   .power-flow-container {
     min-height: 195px;
   }
+}
+
+/* Desktop default visibility for mobile-specific items */
+.mobile-settings-btn,
+.mobile-hamburger-btn,
+.mobile-menu-overlay,
+.mobile-menu-header {
+  display: none;
+}
+
+.mobile-link-text {
+  display: none;
+}
+
+.sidebar-top-section {
+  display: contents;
+}
+
+/* Ensure drawer container is a flex column on desktop so footer goes to bottom */
+.sidebar-nav-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 /* responsive media queries */
@@ -807,57 +840,223 @@ h3,
   .sidebar-panel {
     width: 100%;
     height: auto;
+    padding: 0;
+    margin-bottom: 5px;
+    /* Reset panel styles so it doesn't form a containing block for fixed children */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .sidebar-top-section {
+    display: flex;
     flex-direction: row;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    gap: 15px;
+    width: 100%;
+    /* Apply panel styles here instead */
+    background: linear-gradient(145deg, var(--panel-bg), var(--panel-bg-alt));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 15px 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    gap: 10px;
   }
 
-  .sidebar-header {
-    flex-direction: row;
-    align-items: center;
-    gap: 15px;
-  }
-
-  .sidebar-logo, 
-  .active-monitoring-section, 
-  .sidebar-footer {
+  .sidebar-logo {
     padding: 0;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+
+  .sidebar-logo h1 {
+    display: block !important;
+    /* Ensure logo text is visible on mobile */
+    font-size: 16px !important;
+    letter-spacing: 1px;
+  }
+
+  .active-monitoring-section {
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    /* Push to the right, next to settings */
+    padding-right: 10px;
   }
 
   .active-monitoring-title {
     display: none;
   }
 
-  .sidebar-solar-status {
-    width: auto;
+  .mobile-settings-btn {
+    display: none;
+  }
+
+  /* Sliding Menu Overlay */
+  .mobile-menu-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-menu-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Hamburger Button */
+  .mobile-hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 5px;
+  }
+
+  /* The Sliding Drawer */
+  .sidebar-nav-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 320px;
+    background: linear-gradient(145deg, var(--panel-bg), var(--panel-bg-alt));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid var(--border-color);
+    z-index: 2000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0 30px 30px 0;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 20px;
+    padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.7);
+    margin: 0;
+  }
+
+  .sidebar-nav-container.open {
+    transform: translateX(0);
+  }
+
+  /* Menu Header inside Drawer */
+  .mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mobile-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
   }
 
   .sidebar-nav {
-    flex-direction: row;
-    gap: 10px;
-    flex: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-bottom: 10px;
+    min-height: 0;
   }
 
   .sidebar-link {
-    padding: 8px 12px;
+    flex-direction: row;
+    gap: 15px;
+    padding: 12px 15px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    justify-content: flex-start;
+  }
+
+  .sidebar-link.active {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .sidebar-link-text {
+    display: none;
+  }
+
+  .mobile-link-text {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
   }
 
   .sidebar-footer {
-    margin-top: 0;
+    display: block;
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .sidebar-settings-btn {
-    width: auto;
-    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 12px;
+  }
+
+  .sidebar-settings-btn:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Main Layout Scale Effect removed to avoid breaking position: fixed for the drawer */
+  .main-layout {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .main-layout.menu-open {
+    /* Instead of scale, just prevent scrolling on body is better handled by overlay, 
+       but we keep the class in case we want other effects later. */
   }
 
   .content-area {
     height: auto;
     overflow: visible;
     padding-right: 0;
+    min-width: 0;
+    width: 100%;
   }
 
   .dashboard-grid {
@@ -926,10 +1125,6 @@ h3,
 }
 
 @media (max-width: 768px) {
-  .sidebar-link-text {
-    display: none;
-  }
-
   .sidebar-logo h1 {
     display: none;
   }
@@ -940,9 +1135,11 @@ h3,
     display: none;
   }
 
-  .sidebar-panel {
-    padding: 10px;
+  .panel.sidebar-panel {
+    padding: 0;
     gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .sidebar-header {
@@ -952,10 +1149,15 @@ h3,
   .main-layout {
     padding: 10px;
     gap: 10px;
+    width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .panel {
     padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 

@@ -61,6 +61,26 @@ describe('Hausu Smart Dashboard', () => {
       cy.get('button').find('svg.lucide-chevron-right').should('exist');
     });
 
+    it('permet de basculer en mode historique 24H', () => {
+      // Click 24H button
+      cy.contains('button', '24H').click();
+      
+      // Wait for new fetch with mode=day
+      cy.wait('@getHistory').its('request.url').should('include', 'mode=day');
+      
+      // The time (e.g. 23:00) should disappear, only date should remain
+      cy.get('.history-panel').contains(':00').should('not.exist');
+      
+      // Navigate to previous day
+      cy.get('button').find('svg.lucide-chevron-left').parent().click();
+      cy.wait('@getHistory');
+      
+      // Back to 1H
+      cy.contains('button', '1H').click();
+      cy.wait('@getHistory').its('request.url').should('include', 'mode=hour');
+      cy.get('.history-panel').contains(':00').should('exist');
+    });
+
     it('affiche les details de puissance', () => {
       // The labels are MAISON, SOLAIRE, CHAUFFE-EAU in classic theme
       cy.contains('MAISON').should('be.visible');

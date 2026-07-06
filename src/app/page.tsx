@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ShellyDashboard from '../components/ShellyDashboard';
-import ClimateTornado from '../components/ClimateTornado';
-import Sidebar from '../components/shared/Sidebar';
-import SettingsModal from '../components/shared/SettingsModal';
-import TodoDashboard from '../components/TodoDashboard';
-import WeatherForecast from '../components/WeatherForecast';
+import ShellyDashboard from '../components/organisms/ShellyDashboard';
+import ClimateTornado from '../components/organisms/ClimateTornado';
+import Sidebar from '../components/organisms/Sidebar';
+import SettingsModal from '../components/organisms/SettingsModal';
+import TodoDashboard from '../components/organisms/TodoDashboard';
+import WeatherForecast from '../components/organisms/WeatherForecast';
+import ServerDashboard from '../components/organisms/ServerDashboard';
 
 interface ShellyLiveData {
   voltage_a: number;
@@ -22,11 +23,12 @@ interface ShellyLiveData {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'climate' | 'todo' | 'weather'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'climate' | 'todo' | 'weather' | 'server'>('dashboard');
   const [showSettings, setShowSettings] = useState(false);
   const [data, setData] = useState<ShellyLiveData | null>(null);
   const [theme, setTheme] = useState<'classic' | 'nier'>('classic');
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem('theme') as 'classic' | 'nier';
@@ -58,7 +60,7 @@ export default function Home() {
   }, [mounted]);
 
   return (
-    <div className={`main-layout ${theme === 'nier' ? 'theme-nier' : ''}`}>
+    <div className={`main-layout ${theme === 'nier' ? 'theme-nier' : ''} ${isMobileMenuOpen ? 'menu-open' : ''}`}>
       {showSettings && (
         <SettingsModal
           theme={theme}
@@ -70,22 +72,28 @@ export default function Home() {
 
       <Sidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          setIsMobileMenuOpen(false); // Close menu on selection
+        }}
         onOpenSettings={() => setShowSettings(true)}
         data={data}
         theme={theme}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
       <div className="content-area">
-        {activeTab === 'dashboard' ? (
-          <ShellyDashboard data={data} theme={theme} />
-        ) : activeTab === 'climate' ? (
-          <ClimateTornado />
-        ) : activeTab === 'todo' ? (
-          <TodoDashboard theme={theme} />
-        ) : (
-          <WeatherForecast theme={theme} />
-        )}
+        {(() => {
+          switch (activeTab) {
+            case 'dashboard': return <ShellyDashboard data={data} theme={theme} />;
+            case 'climate': return <ClimateTornado />;
+            case 'todo': return <TodoDashboard theme={theme} />;
+            case 'weather': return <WeatherForecast theme={theme} />;
+            case 'server': return <ServerDashboard theme={theme} />;
+            default: return null;
+          }
+        })()}
       </div>
     </div>
   );
