@@ -87,9 +87,28 @@ export default function ServerDashboard({ theme }: ServerDashboardProps) {
   const hostname = osInfo.hostname || "Unknown_Host";
 
   // Drives mapping
-  const drives = fsSize && fsSize.length > 0 ? fsSize : [];
-  const totalSize = drives.reduce((acc, d) => acc + (d.size || 0), 0);
-  const totalUsed = drives.reduce((acc, d) => acc + (d.used || 0), 0);
+  const rawDrives = fsSize && fsSize.length > 0 ? fsSize : [];
+  
+  // Filter out noisy docker mounts and temp filesystems
+  const filteredDrives = rawDrives.filter((d: any) => {
+    if (d.mount.startsWith('/etc/')) return false;
+    if (d.fs === 'tmpfs' || d.fs === 'devtmpfs' || d.fs === 'shm') return false;
+    if (d.mount.startsWith('/sys/') || d.mount.startsWith('/proc/')) return false;
+    return true;
+  });
+
+  // Deduplicate by size and used (removes duplicate overlay/host mappings)
+  const uniqueDrivesMap = new Map();
+  filteredDrives.forEach((d: any) => {
+    const key = `${d.size}-${d.used}`;
+    if (!uniqueDrivesMap.has(key)) {
+      uniqueDrivesMap.set(key, d);
+    }
+  });
+  const drives = Array.from(uniqueDrivesMap.values());
+
+  const totalSize = drives.reduce((acc, d: any) => acc + (d.size || 0), 0);
+  const totalUsed = drives.reduce((acc, d: any) => acc + (d.used || 0), 0);
   const totalCapacityPct = totalSize > 0 ? Math.round((totalUsed / totalSize) * 100) : 0;
 
   // RAM Usage mapping (0-100) 
