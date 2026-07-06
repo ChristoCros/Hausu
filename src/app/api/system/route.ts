@@ -40,9 +40,26 @@ export async function GET() {
       })
     );
 
+    // Fallback temperature reading for DietPi/Alpine
+    let finalCpuTemp = cpuTemp;
+    if (!finalCpuTemp || finalCpuTemp.main === null || finalCpuTemp.main === 0) {
+      try {
+        const fs = require('fs');
+        const execSync = require('child_process').execSync;
+        // Try to find a temp1_input file in hwmon
+        const tempPath = execSync("find /sys/class/hwmon/ /sys/devices/ -name 'temp1_input' 2>/dev/null | head -n 1").toString().trim();
+        if (tempPath) {
+          const tempVal = parseInt(fs.readFileSync(tempPath, 'utf8').trim(), 10);
+          finalCpuTemp = { main: tempVal / 1000, cores: [], max: tempVal / 1000, socket: [], chipset: null };
+        }
+      } catch (e) {
+        // Fallback failed, leave as is
+      }
+    }
+
     return NextResponse.json({
       cpu,
-      cpuTemp,
+      cpuTemp: finalCpuTemp,
       mem,
       fsSize,
       osInfo,
