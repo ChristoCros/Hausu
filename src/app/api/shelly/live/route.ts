@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(`http://${ip}/rpc/Shelly.GetStatus`, {
       cache: 'no-store',
       signal: controller.signal

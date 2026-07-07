@@ -730,9 +730,9 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
                     color: 'var(--text-primary)'
                   }}
                 />
-                <Area type="monotone" dataKey="Maison" stroke="var(--accent-blue)" strokeWidth={3} fillOpacity={1} fill="url(#colorMaison)" dot={maisonCount === 1 ? { r: 4, fill: 'var(--accent-blue)', strokeWidth: 0 } : false} activeDot={{ r: 8, fill: 'var(--accent-blue)' }} connectNulls={false} />
-                <Area type="monotone" dataKey="Solaire" stroke="var(--accent-solar)" strokeWidth={2} fillOpacity={1} fill="url(#colorSolaire)" dot={solaireCount === 1 ? { r: 4, fill: 'var(--accent-solar)', strokeWidth: 0 } : false} connectNulls={false} />
-                <Area type="monotone" dataKey="ChauffeEau" stroke="var(--accent-teal)" strokeWidth={2} fillOpacity={1} fill="url(#colorChauffeEau)" dot={chauffeCount === 1 ? { r: 4, fill: 'var(--accent-teal)', strokeWidth: 0 } : false} connectNulls={false} />
+                <Area type="monotone" dataKey="Maison" stroke="var(--accent-blue)" strokeWidth={3} fillOpacity={1} fill="url(#colorMaison)" dot={maisonCount === 1 ? { r: 4, fill: 'var(--accent-blue)', strokeWidth: 0 } : false} activeDot={{ r: 8, fill: 'var(--accent-blue)' }} connectNulls={true} />
+                <Area type="monotone" dataKey="Solaire" stroke="var(--accent-solar)" strokeWidth={2} fillOpacity={1} fill="url(#colorSolaire)" dot={solaireCount === 1 ? { r: 4, fill: 'var(--accent-solar)', strokeWidth: 0 } : false} connectNulls={true} />
+                <Area type="monotone" dataKey="ChauffeEau" stroke="var(--accent-teal)" strokeWidth={2} fillOpacity={1} fill="url(#colorChauffeEau)" dot={chauffeCount === 1 ? { r: 4, fill: 'var(--accent-teal)', strokeWidth: 0 } : false} connectNulls={true} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

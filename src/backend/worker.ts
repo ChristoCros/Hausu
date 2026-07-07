@@ -16,18 +16,37 @@ const fetchShellyData = async () => {
       throw new Error("Invalid or missing Shelly IP address format");
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    let res;
-    try {
-      res = await fetch(`http://${shellyIp}/rpc/Shelly.GetStatus`, {
-        signal: controller.signal
-      });
-    } finally {
-      clearTimeout(timeoutId);
+    const fetchWithTimeout = async (url: string, timeoutMs: number) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        return await fetch(url, { signal: controller.signal });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    let res = null;
+    let lastError = null;
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        res = await fetchWithTimeout(`http://${shellyIp}/rpc/Shelly.GetStatus`, 5000);
+        if (res.ok) break;
+        lastError = new Error(`HTTP error! status: ${res.status}`);
+      } catch (err) {
+        lastError = err;
+      }
+      
+      if (attempt < maxAttempts) {
+        console.warn(`[${new Date().toISOString()}] Shelly poll attempt ${attempt} failed. Retrying in 2s...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
-    
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+    if (!res || !res.ok) {
+      throw lastError || new Error("Failed to fetch Shelly data after retries");
+    }
     const data = await res.json();
 
     const phaseA = data['em1:0'];
