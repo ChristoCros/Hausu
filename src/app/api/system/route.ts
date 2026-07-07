@@ -60,7 +60,7 @@ export async function GET() {
         }
         
         if (tempVal !== null) {
-          finalCpuTemp = { main: tempVal / 1000, cores: [], max: tempVal / 1000, socket: [], chipset: null };
+          finalCpuTemp = { main: tempVal / 1000, cores: [], max: tempVal / 1000, socket: [], chipset: undefined };
         }
       } catch (e) {
         console.error("Temperature fallback failed:", e);

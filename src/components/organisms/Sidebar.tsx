@@ -34,7 +34,7 @@ export default function Sidebar({
         onClick={() => setIsMobileMenuOpen?.(false)}
       />
 
-      <aside className="panel sidebar-panel">
+      <aside className="sidebar-panel">
         <div className="sidebar-top-section">
           <button 
             className="mobile-hamburger-btn" 
