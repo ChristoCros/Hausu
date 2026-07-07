@@ -42,11 +42,11 @@ async function fetchNetatmoFromApi(
   const accessToken = tokenData.access_token;
 
   // 2. Fetch public data for a bounding box centered around user coordinates (GET request)
-  // We use a 0.08 degree bounding box (~8-9 km radius) to safely cover target station 70:ee:50:b0:91:7c
-  const lat_ne = (lat + 0.08).toFixed(4);
-  const lat_sw = (lat - 0.08).toFixed(4);
-  const lon_ne = (lon + 0.08).toFixed(4);
-  const lon_sw = (lon - 0.08).toFixed(4);
+  // We use a 0.2 degree bounding box (~20 km radius) to safely cover target station 70:ee:50:b0:91:7c (Vallons-de-l'Erdre)
+  const lat_ne = (lat + 0.2).toFixed(4);
+  const lat_sw = (lat - 0.2).toFixed(4);
+  const lon_ne = (lon + 0.2).toFixed(4);
+  const lon_sw = (lon - 0.2).toFixed(4);
 
   const params = new URLSearchParams({
     lat_ne,
