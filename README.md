@@ -14,7 +14,7 @@ L’objectif est simple : transformer des données techniques dispersées en une
 
 ## Aperçu
 
-![Vue du dashboard énergie de Hausu](./public/screenshots/hausu-energy-dashboard.png)
+![Vue du dashboard énergie de Hausu](./public/screenshots/hausu-energy-dashboard.jpg)
 
 L’interface privilégie une lecture rapide des informations : navigation persistante, cartes spécialisées, visualisations lisibles et mise en page adaptée aux écrans desktop comme mobile.
 
