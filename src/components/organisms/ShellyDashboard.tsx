@@ -980,7 +980,7 @@ export default function ShellyDashboard({ data, theme }: ShellyDashboardProps) {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '5px', marginBottom: '2px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-orange)' }}>
-                    {theme === 'nier' ? 'VALLONS-DE-L\'ERDRE // TEMPS REEL' : 'Vallons-de-l\'Erdre (Temps réel)'}
+                    {theme === 'nier' ? `${(process.env.NEXT_PUBLIC_CITY_NAME || 'Paris').toUpperCase()} // TEMPS REEL` : `${process.env.NEXT_PUBLIC_CITY_NAME || 'Paris'} (Temps réel)`}
                   </span>
                   <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
                     {new Date(netatmo.updated_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
