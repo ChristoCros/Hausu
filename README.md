@@ -12,6 +12,12 @@ L’objectif est simple : transformer des données techniques dispersées en une
 ![Prisma](https://img.shields.io/badge/Prisma-6-2d3748?logo=prisma)
 ![Cypress](https://img.shields.io/badge/tests-Cypress-69d3a7?logo=cypress)
 
+## Aperçu
+
+![Vue de la spirale climatique de Hausu](./public/screenshots/hausu-climate-dashboard.png)
+
+L’interface privilégie une lecture rapide des informations : navigation persistante, cartes spécialisées, visualisations lisibles et mise en page adaptée aux écrans desktop comme mobile.
+
 ## Ce que le projet démontre
 
 - Concevoir une interface produit complète à partir de besoins concrets.
